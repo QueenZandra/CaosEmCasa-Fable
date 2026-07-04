@@ -71,14 +71,23 @@ func item_dropped(item: Node3D, pos: Vector3) -> void:
 	if Vector2(pos.x - box.x, pos.z - box.z).length() < 1.7:
 		_toys_delivered += 1
 		if item is Carryable:
-			carryables.erase((item as Carryable).net_id)
-		item.queue_free()
+			remove_carryable(item as Carryable)
+		else:
+			item.queue_free()
 		AudioMan.play_sfx("cute")
 
 
 func ability_used(pet: Node) -> void:
 	if task_index >= 2:
 		_abilities_used[(pet as Pet).slot] = true
+
+
+func on_remote_hud(state: Dictionary) -> void:
+	task_index = int(state.get("task", task_index))
+
+
+func extra_hud() -> Dictionary:
+	return {"task": task_index}
 
 
 func objective_text() -> String:

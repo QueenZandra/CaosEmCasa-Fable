@@ -211,7 +211,9 @@ func _physics_process(delta: float) -> void:
 				_send_snapshot()
 			if _frame_count % HUD_EVERY == 0:
 				_send_hud_state()
-	if _frame_count % 6 == 0:
+	# Clientes recebem o estado autoritativo pelo evento "hud" (5 Hz);
+	# atualizar localmente aqui faria o timer piscar com valores velhos.
+	if _frame_count % 6 == 0 and (is_host or not online):
 		_update_hud(false)
 
 
@@ -407,6 +409,13 @@ func spawn_carryable(kind: String, pos: Vector3) -> Carryable:
 	return c
 
 
+func remove_carryable(item: Carryable) -> void:
+	carryables.erase(item.net_id)
+	if online and is_host:
+		Net.broadcast({"e": "carry-", "id": item.net_id})
+	item.queue_free()
+
+
 ## ------------------------------------------------ ameaças (host)
 
 func spawn_threat(threat: Threat) -> void:
@@ -529,7 +538,16 @@ func _send_snapshot() -> void:
 	for id in threats:
 		if is_instance_valid(threats[id]):
 			threats_snap[id] = threats[id].snapshot()
-	Net.broadcast({"s": {"p": pets_snap, "t": threats_snap}}, false)
+	var carry_snap := {}
+	for id in carryables:
+		var c: Carryable = carryables[id]
+		if is_instance_valid(c):
+			carry_snap[id] = [
+				snappedf(c.global_position.x, 0.01),
+				snappedf(c.global_position.y, 0.01),
+				snappedf(c.global_position.z, 0.01),
+			]
+	Net.broadcast({"s": {"p": pets_snap, "t": threats_snap, "c": carry_snap}}, false)
 
 
 func _on_net_msg(from_id: int, msg: Dictionary) -> void:
@@ -539,10 +557,11 @@ func _on_net_msg(from_id: int, msg: Dictionary) -> void:
 		return
 	if from_id != 1:
 		return
-	if msg.has("s"):
-		_apply_snapshot(msg["s"])
-	elif msg.has("e"):
+	# Eventos primeiro: a mensagem de HUD carrega "e" E "s" ao mesmo tempo.
+	if msg.has("e"):
 		_apply_event(msg)
+	elif msg.has("s"):
+		_apply_snapshot(msg["s"])
 
 
 func _apply_snapshot(snap: Dictionary) -> void:
@@ -556,6 +575,12 @@ func _apply_snapshot(snap: Dictionary) -> void:
 		var threat: Threat = threats.get(int(id))
 		if threat != null and is_instance_valid(threat):
 			threat.apply_snapshot(threats_snap[id])
+	var carry_snap: Dictionary = snap.get("c", {})
+	for id in carry_snap:
+		var c: Carryable = carryables.get(int(id))
+		if c != null and is_instance_valid(c):
+			var arr: Array = carry_snap[id]
+			c.global_position = Vector3(arr[0], arr[1], arr[2])
 
 
 func _apply_event(msg: Dictionary) -> void:
@@ -597,6 +622,13 @@ func _apply_event(msg: Dictionary) -> void:
 			c.net_id = int(msg.get("id", 0))
 			add_child(c)
 			carryables[c.net_id] = c
+		"carry-":
+			var id := int(msg.get("id", 0))
+			if carryables.has(id):
+				var c: Carryable = carryables[id]
+				carryables.erase(id)
+				if is_instance_valid(c):
+					c.queue_free()
 		"threat+":
 			_spawn_threat_replica(msg)
 		"threat-":
