@@ -114,14 +114,31 @@ func build(def: Dictionary) -> void:
 			var e2 := MeshLib.box(_head, Vector3(0.08, 0.26, 0.14), body_col, Vector3(0.22, 0.05, 0.0))
 			e2.rotation.z = -0.5
 
-	# Listras da Zoe (rajada preto/laranja)
-	if def.get("ability", "") == "stealth":
-		for i in 4:
-			var stripe := MeshLib.box(
-				_core, Vector3(0.5, 0.06, 0.09), belly_col,
-				Vector3(0, 0.52 + 0.04 * (i % 2), -0.18 + 0.13 * i)
+	# Pelagem escaminha (casco de tartaruga): manchas laranja/creme
+	# espalhadas pelo corpo e pela cabeça (Zoe).
+	if def.get("mottled", false):
+		var mrng := RandomNumberGenerator.new()
+		mrng.seed = 424_242
+		var patch_cols: Array = def.get(
+			"patch_colors",
+			[Color(0.78, 0.45, 0.16), Color(0.85, 0.68, 0.42)]
+		)
+		var body_center := Vector3(0, 0.42 + lift, 0)
+		for i in 14:
+			var dir := Vector3(
+				mrng.randf_range(-1.0, 1.0), mrng.randf_range(-0.2, 1.0),
+				mrng.randf_range(-1.0, 1.0)
+			).normalized()
+			var pos := body_center + Vector3(
+				dir.x * 0.3 * chubby, dir.y * 0.28 * chubby, dir.z * 0.4 * chubby
 			)
-			stripe.rotation.z = 0.15 * (1 if i % 2 == 0 else -1)
+			MeshLib.sphere(_core, mrng.randf_range(0.05, 0.09), patch_cols[i % patch_cols.size()], pos, 0.7)
+		for i in 4:
+			var head_dir := Vector3(
+				mrng.randf_range(-1.0, 1.0), mrng.randf_range(0.0, 1.0),
+				mrng.randf_range(0.2, 1.0)
+			).normalized()
+			MeshLib.sphere(_head, mrng.randf_range(0.04, 0.06), patch_cols[i % patch_cols.size()], head_dir * 0.21, 0.7)
 
 	# Pernas
 	for i in 4:
@@ -153,6 +170,8 @@ func build(def: Dictionary) -> void:
 		_:
 			var seg := MeshLib.cylinder(_tail, 0.035, 0.34, body_col, Vector3(0, 0.14, -0.06))
 			seg.rotation.x = 0.5
+			if def.has("tail_tip_color"):
+				MeshLib.sphere(_tail, 0.05, def["tail_tip_color"], Vector3(0, 0.3, 0.02))
 
 	# Bolinha (aparece só na pose "play")
 	_ball = MeshLib.sphere(self, 0.09, Color(0.9, 0.25, 0.3), Vector3(0, 0.09, 0.55))

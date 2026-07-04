@@ -63,12 +63,20 @@ const DEFS := {
 		"ability_cooldown": 9.0,
 	},
 	"zoe": {
-		# Gata rajada preto/laranja, gorda. Sobe em tudo, medrosa, bagunceira.
+		# Gata escaminha (casco de tartaruga), gorda. Sobe em tudo, medrosa,
+		# bagunceira. Visual das fotos reais: preta mosqueada de manchas
+		# laranja/creme, olhos âmbar marcantes, rostinho assimétrico,
+		# bem redondinha e com a pontinha do rabo clara.
 		"kind": "cat",
 		"scale": 1.0,
 		"chubby": 1.3,
-		"body_color": Color(0.2, 0.14, 0.08),
-		"belly_color": Color(0.85, 0.45, 0.15),
+		"body_color": Color(0.16, 0.12, 0.1),
+		"belly_color": Color(0.72, 0.5, 0.3),
+		"muzzle_color": Color(0.85, 0.68, 0.45),
+		"eye_color": Color(0.93, 0.68, 0.18),
+		"eye_size": 1.15,
+		"mottled": true,
+		"tail_tip_color": Color(0.88, 0.85, 0.78),
 		"ear": "cat",
 		"tail": "thin",
 		"speed": 4.8,
