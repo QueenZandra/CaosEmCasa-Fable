@@ -89,11 +89,20 @@ const DEFS := {
 	},
 	"minerva": {
 		# Gata preta, cara de mal mas carinhosa. Rápida, patada potente.
+		# Visual das fotos reais: pantera em miniatura — preta lustrosa,
+		# esguia, olhões amarelo-esverdeados, orelhonas pontudas, bigodes
+		# brancos destacados e presinhas de deboche à mostra.
 		"kind": "cat",
 		"scale": 1.0,
 		"chubby": 0.9,
 		"body_color": Color(0.08, 0.08, 0.09),
-		"belly_color": Color(0.15, 0.15, 0.17),
+		"belly_color": Color(0.13, 0.13, 0.15),
+		"muzzle_color": Color(0.12, 0.12, 0.13),
+		"eye_color": Color(0.78, 0.78, 0.3),
+		"eye_size": 1.2,
+		"ear_size": 1.25,
+		"whiskers": true,
+		"fangs": true,
 		"ear": "cat",
 		"tail": "thin",
 		"speed": 6.4,

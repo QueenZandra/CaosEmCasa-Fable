@@ -100,11 +100,30 @@ func build(def: Dictionary) -> void:
 			MeshLib.sphere(_head, eye_r * 0.16, Color.WHITE, eye_pos + Vector3(0.012 * side, 0.015, 0.06))
 		else:
 			MeshLib.sphere(_head, eye_r, Color(0.08, 0.07, 0.06), eye_pos)
+	# Bigodes destacados (Minerva)
+	if def.get("whiskers", false):
+		for side in [-1.0, 1.0]:
+			for i in 2:
+				var whisker := MeshLib.box(
+					_head, Vector3(0.17, 0.008, 0.008), Color(0.93, 0.93, 0.9),
+					Vector3(0.15 * side, -0.04 - 0.035 * i, 0.19 + snout_fwd)
+				)
+				whisker.rotation.y = 0.35 * side
+				whisker.rotation.z = 0.12 * side * (1.0 if i == 0 else -0.5)
+	# Presinhas de "cara de mal" (Minerva)
+	if def.get("fangs", false):
+		for side in [-1.0, 1.0]:
+			var fang := MeshLib.cone(
+				_head, 0.014, 0.04, Color(0.95, 0.94, 0.9),
+				Vector3(0.035 * side, -0.12, 0.24 + snout_fwd)
+			)
+			fang.rotation.x = PI
 	# Orelhas
+	var ear_scale := float(def.get("ear_size", 1.0))
 	match String(def.get("ear", "cat")):
 		"cat":
-			MeshLib.cone(_head, 0.09, 0.16, body_col, Vector3(-0.13, 0.22, 0.0))
-			MeshLib.cone(_head, 0.09, 0.16, body_col, Vector3(0.13, 0.22, 0.0))
+			MeshLib.cone(_head, 0.09 * ear_scale, 0.16 * ear_scale, body_col, Vector3(-0.13, 0.2 + 0.03 * ear_scale, 0.0))
+			MeshLib.cone(_head, 0.09 * ear_scale, 0.16 * ear_scale, body_col, Vector3(0.13, 0.2 + 0.03 * ear_scale, 0.0))
 		"dog_up":
 			MeshLib.cone(_head, 0.1, 0.22, body_col, Vector3(-0.13, 0.24, -0.02))
 			MeshLib.cone(_head, 0.1, 0.22, body_col, Vector3(0.13, 0.24, -0.02))
