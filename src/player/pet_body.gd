@@ -57,30 +57,39 @@ func build(def: Dictionary) -> void:
 	MeshLib.sphere(_core, 0.22 * chubby, belly_col, Vector3(0, 0.32 + lift, 0.12), 0.8)
 	if def.get("ruff", false):
 		# Juba/peitoral fofo
-		MeshLib.sphere(_core, 0.24 * chubby, body_col.lightened(0.07), Vector3(0, 0.46 + lift, 0.26), 0.9)
+		var ruff_col: Color = def.get("ruff_color", body_col.lightened(0.07))
+		MeshLib.sphere(_core, 0.24 * chubby, ruff_col, Vector3(0, 0.46 + lift, 0.26), 0.9)
 
 	# Cabeça
 	_head = Node3D.new()
 	_head.position = Vector3(0, 0.62 + lift, 0.42)
 	_core.add_child(_head)
 	MeshLib.sphere(_head, 0.24, body_col, Vector3.ZERO)
+	if def.get("head_tuft", false):
+		# Topete de pelo bagunçadinho
+		MeshLib.sphere(_head, 0.11, body_col.lightened(0.12), Vector3(0, 0.2, 0.06), 0.8)
 	# Focinho
 	var snout_fwd := 0.09 * (snout - 1.0)
 	if is_cat:
 		MeshLib.sphere(_head, 0.08, muzzle_col, Vector3(0, -0.05, 0.2))
 	else:
 		MeshLib.box(_head, Vector3(0.16, 0.12, 0.18 * snout), muzzle_col, Vector3(0, -0.06, 0.22 + snout_fwd))
+	if def.get("beard", false):
+		# Barbinha fofa em volta do focinho
+		MeshLib.sphere(_head, 0.1, muzzle_col, Vector3(0, -0.12, 0.18 + snout_fwd), 0.9)
 	MeshLib.sphere(_head, 0.035, Color(0.05, 0.04, 0.04), Vector3(0, -0.03, 0.3 + snout_fwd * 2.0))  # nariz
-	# Língua (aparece nas poses felizes)
-	if def.get("tongue", false):
+	# Língua: "tongue" aparece nas poses felizes; "blep" fica sempre de fora
+	var blep: bool = def.get("blep", false)
+	if def.get("tongue", false) or blep:
+		var tongue_size := Vector3(0.05, 0.02, 0.08) if blep else Vector3(0.07, 0.02, 0.12)
 		_tongue = MeshLib.box(
-			_head, Vector3(0.07, 0.02, 0.12), Color(0.93, 0.5, 0.55),
-			Vector3(0, -0.14, 0.24 + snout_fwd)
+			_head, tongue_size, Color(0.93, 0.5, 0.55),
+			Vector3(0, -0.14 if not blep else -0.16, 0.24 + snout_fwd)
 		)
 		_tongue.rotation.x = 0.25
-		_tongue.visible = false
-	# Olhos (grandes e pidões para a Belatriz; com íris se o pet tiver cor)
-	var eye_r := 0.05 if String(_def.get("ear", "")) != "dog_up" else 0.07
+		_tongue.visible = blep
+	# Olhos (tamanho por pet; com íris colorida se o pet tiver "eye_color")
+	var eye_r := 0.05 * float(def.get("eye_size", 1.0))
 	for side in [-1.0, 1.0]:
 		var eye_pos := Vector3(0.1 * side, 0.08, 0.18)
 		if def.has("eye_color"):
@@ -218,7 +227,7 @@ func animate(delta: float) -> void:
 		_ball.visible = false
 	_tail.rotation.y = sin(_t * wag_speed) * 0.6
 	if _tongue != null:
-		_tongue.visible = pose in ["walk", "sit_wag", "play"]
+		_tongue.visible = _def.get("blep", false) or pose in ["walk", "sit_wag", "play"]
 
 
 func flash(color: Color) -> void:

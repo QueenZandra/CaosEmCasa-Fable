@@ -33,12 +33,26 @@ const DEFS := {
 	},
 	"belatriz": {
 		# Cadela pequena, dourada, olhos pidões. Feroz contra invasores.
+		# Visual baseado nas fotos reais: pelo creme/damasco ondulado e
+		# bagunçadinho, focinho curto com barbinha creme, orelhas caídas
+		# com franja, olhões escuros de pidona e a linguinha de fora (blep).
 		"kind": "dog",
 		"scale": 0.8,
-		"chubby": 0.95,
-		"body_color": Color(0.87, 0.68, 0.32),
-		"belly_color": Color(0.95, 0.85, 0.6),
-		"ear": "dog_up",
+		"chubby": 1.05,
+		"leggy": 0.85,
+		"snout": 0.7,
+		"body_color": Color(0.85, 0.7, 0.48),
+		"belly_color": Color(0.93, 0.87, 0.72),
+		"muzzle_color": Color(0.92, 0.86, 0.7),
+		"eye_color": Color(0.32, 0.2, 0.12),
+		"eye_size": 1.45,
+		"ruff": true,
+		"ruff_color": Color(0.93, 0.87, 0.72),
+		"head_tuft": true,
+		"beard": true,
+		"leg_feathers": true,
+		"blep": true,
+		"ear": "dog_floppy",
 		"tail": "fluffy",
 		"speed": 5.6,
 		"ability": "ferocious",    # buff: susto máximo contra invasores
