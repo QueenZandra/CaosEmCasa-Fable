@@ -56,6 +56,10 @@ func setup(p_pet_id: String, p_slot: int, p_puppet: bool, p_level: Node) -> void
 	shape.shape = capsule
 	shape.position.y = 0.5
 	add_child(shape)
+	if puppet:
+		# Réplicas só interpolam o estado da rede; não colidem localmente.
+		collision_layer = 0
+		collision_mask = 0
 
 	body = PetBody.new()
 	body.build(def)
