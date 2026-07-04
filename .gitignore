@@ -1,0 +1,12 @@
+# Godot
+.godot/
+*.import
+export_presets.cfg
+
+# Node (relay)
+relay/node_modules/
+relay/package-lock.json
+
+# SO
+.DS_Store
+Thumbs.db

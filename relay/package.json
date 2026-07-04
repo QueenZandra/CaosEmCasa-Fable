@@ -1,0 +1,12 @@
+{
+  "name": "caos-em-casa-relay",
+  "version": "1.0.0",
+  "description": "Servidor relay de salas (código de 6 letras) para o Caos em Casa",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,38 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+
+config_version=5
+
+[application]
+
+config/name="Caos em Casa"
+config/description="Jogo coop 3D: Sirius, Belatriz, Zoe e Minerva defendem a casa enquanto os donos trabalham."
+run/main_scene="res://src/main.tscn"
+config/features=PackedStringArray("4.5")
+
+[autoload]
+
+GameState="*res://src/autoload/game_state.gd"
+Net="*res://src/autoload/net.gd"
+AudioMan="*res://src/autoload/audio_manager.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=false
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+rendering_device/driver="vulkan"
+anti_aliasing/quality/msaa_3d=2

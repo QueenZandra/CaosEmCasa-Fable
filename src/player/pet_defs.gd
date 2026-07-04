@@ -1,0 +1,85 @@
+class_name PetDefs
+## Definitions of the four playable pets, based on the real-life pets.
+
+const ORDER := ["sirius", "belatriz", "zoe", "minerva"]
+
+const DEFS := {
+	"sirius": {
+		# Cão porte médio, peludo, preto. Protetor, latido potente, estabanado.
+		"kind": "dog",
+		"scale": 1.15,
+		"chubby": 1.0,
+		"body_color": Color(0.13, 0.12, 0.13),
+		"belly_color": Color(0.22, 0.2, 0.21),
+		"ear": "dog_floppy",
+		"tail": "fluffy",
+		"speed": 5.2,
+		"ability": "bark",         # AoE scare, knocks nearby objects over (clumsy!)
+		"cute": "good_boy",        # senta e balança o rabinho
+		"clumsy": true,            # derruba objetos ao correr perto
+		"food_lover": true,        # rouba comida (boost maior)
+		"scare_power": 2.0,
+		"ability_cooldown": 4.0,
+	},
+	"belatriz": {
+		# Cadela pequena, dourada, olhos pidões. Feroz contra invasores.
+		"kind": "dog",
+		"scale": 0.8,
+		"chubby": 0.95,
+		"body_color": Color(0.87, 0.68, 0.32),
+		"belly_color": Color(0.95, 0.85, 0.6),
+		"ear": "dog_up",
+		"tail": "fluffy",
+		"speed": 5.6,
+		"ability": "ferocious",    # buff: susto máximo contra invasores
+		"cute": "belly_up",        # barriguinha pra cima
+		"clumsy": false,
+		"food_lover": false,       # pidona
+		"scare_power": 1.2,
+		"ability_cooldown": 9.0,
+	},
+	"zoe": {
+		# Gata rajada preto/laranja, gorda. Sobe em tudo, medrosa, bagunceira.
+		"kind": "cat",
+		"scale": 1.0,
+		"chubby": 1.3,
+		"body_color": Color(0.2, 0.14, 0.08),
+		"belly_color": Color(0.85, 0.45, 0.15),
+		"ear": "cat",
+		"tail": "thin",
+		"speed": 4.8,
+		"ability": "stealth",      # fica invisível parada; emboscada ao sair
+		"cute": "play_ball",       # brinca com a bolinha perto dos donos
+		"clumsy": true,
+		"food_lover": true,
+		"scare_power": 1.0,
+		"ability_cooldown": 6.0,
+	},
+	"minerva": {
+		# Gata preta, cara de mal mas carinhosa. Rápida, patada potente.
+		"kind": "cat",
+		"scale": 1.0,
+		"chubby": 0.9,
+		"body_color": Color(0.08, 0.08, 0.09),
+		"belly_color": Color(0.15, 0.15, 0.17),
+		"ear": "cat",
+		"tail": "thin",
+		"speed": 6.4,
+		"ability": "pounce",       # patada forte + avanço rápido
+		"cute": "leg_rub",         # se esfrega na perna dos donos
+		"clumsy": false,
+		"food_lover": false,
+		"scare_power": 1.6,
+		"ability_cooldown": 2.5,
+	},
+}
+
+
+static func get_def(pet_id: String) -> Dictionary:
+	return DEFS.get(pet_id, DEFS["sirius"])
+
+
+static func next_pet(current: String, direction: int) -> String:
+	var idx := ORDER.find(current)
+	idx = wrapi(idx + direction, 0, ORDER.size())
+	return ORDER[idx]
