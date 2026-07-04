@@ -1,0 +1,544 @@
+<title>Caos em Casa — Preview dos Pets</title>
+<style>
+  :root {
+    --bg: #F2E7D5;
+    --bg-card: #FBF4E7;
+    --stage-hi: #FFF9EE;
+    --stage-lo: #EBDCC2;
+    --ink: #33281E;
+    --ink-soft: #7A6A56;
+    --accent: #C97F1E;
+    --line: #E0D2B8;
+    --shadow: rgba(51, 40, 30, 0.18);
+    --chip-bg: #F2E7D5;
+    --chip-on: #33281E;
+    --chip-on-ink: #FBF4E7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #211A29;
+      --bg-card: #2B2235;
+      --stage-hi: #362B44;
+      --stage-lo: #241C2E;
+      --ink: #F1E7DA;
+      --ink-soft: #A897B8;
+      --accent: #FFBF59;
+      --line: #3D3050;
+      --shadow: rgba(0, 0, 0, 0.45);
+      --chip-bg: #382D47;
+      --chip-on: #FFBF59;
+      --chip-on-ink: #211A29;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F2E7D5; --bg-card: #FBF4E7; --stage-hi: #FFF9EE; --stage-lo: #EBDCC2;
+    --ink: #33281E; --ink-soft: #7A6A56; --accent: #C97F1E; --line: #E0D2B8;
+    --shadow: rgba(51, 40, 30, 0.18); --chip-bg: #F2E7D5; --chip-on: #33281E; --chip-on-ink: #FBF4E7;
+  }
+  :root[data-theme="dark"] {
+    --bg: #211A29; --bg-card: #2B2235; --stage-hi: #362B44; --stage-lo: #241C2E;
+    --ink: #F1E7DA; --ink-soft: #A897B8; --accent: #FFBF59; --line: #3D3050;
+    --shadow: rgba(0, 0, 0, 0.45); --chip-bg: #382D47; --chip-on: #FFBF59; --chip-on-ink: #211A29;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 28px 20px 48px; }
+  header { text-align: center; margin-bottom: 26px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700;
+  }
+  h1 {
+    margin: 6px 0 4px;
+    font-family: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.1; text-wrap: balance;
+  }
+  header p { margin: 4px 0 0; color: var(--ink-soft); font-size: 15px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+  }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .plate { display: flex; align-items: baseline; gap: 10px; }
+  .swatch { width: 14px; height: 14px; border-radius: 5px; flex: none; align-self: center; }
+  .pet-name {
+    font-family: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+    font-size: 24px; font-weight: 700;
+  }
+  .tagline { color: var(--ink-soft); font-size: 13px; }
+  .stage {
+    position: relative; border-radius: 14px; overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 12%, var(--stage-hi) 0%, var(--stage-lo) 100%);
+    border: 1px solid var(--line);
+    touch-action: none; cursor: grab;
+  }
+  .stage:active { cursor: grabbing; }
+  .stage canvas { display: block; width: 100%; height: 300px; }
+  .hint {
+    position: absolute; right: 10px; bottom: 8px; font-size: 11px;
+    color: var(--ink-soft); letter-spacing: 0.06em; text-transform: uppercase;
+    pointer-events: none; opacity: 0.8;
+  }
+  .poses { display: flex; flex-wrap: wrap; gap: 8px; }
+  .poses button {
+    font: 600 13px/1 system-ui, sans-serif; letter-spacing: 0.02em;
+    padding: 8px 13px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--chip-bg); color: var(--ink); cursor: pointer;
+  }
+  .poses button:hover { border-color: var(--accent); }
+  .poses button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .poses button[aria-pressed="true"] {
+    background: var(--chip-on); color: var(--chip-on-ink); border-color: var(--chip-on);
+  }
+  footer {
+    margin-top: 26px; text-align: center; color: var(--ink-soft); font-size: 13px;
+  }
+  footer code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Caos em Casa</div>
+    <h1>Preview 3D dos Pets</h1>
+    <p>Os quatro heróis da casa, exatamente como o jogo os constrói — arraste para girar, escolha uma pose.</p>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>
+    Réplica fiel de <code>src/player/pet_body.gd</code> + <code>pet_defs.gd</code>: mesmas primitivas, cores, proporções e poses do jogo.
+  </footer>
+</div>
+
+<script>
+'use strict';
+/* ================= Mini renderizador 3D (flat shading + painter) ================= */
+
+function V(x, y, z) { return { x, y, z }; }
+function sub(a, b) { return V(a.x - b.x, a.y - b.y, a.z - b.z); }
+function cross(a, b) { return V(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x); }
+function norm(a) { const l = Math.hypot(a.x, a.y, a.z) || 1; return V(a.x / l, a.y / l, a.z / l); }
+function dot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+
+function rotX(v, a) { const c = Math.cos(a), s = Math.sin(a); return V(v.x, v.y * c - v.z * s, v.y * s + v.z * c); }
+function rotY(v, a) { const c = Math.cos(a), s = Math.sin(a); return V(v.x * c + v.z * s, v.y, -v.x * s + v.z * c); }
+function rotZ(v, a) { const c = Math.cos(a), s = Math.sin(a); return V(v.x * c - v.y * s, v.x * s + v.y * c, v.z); }
+function xform(v, rot) { return rotY(rotX(rotZ(v, rot.z), rot.x), rot.y); }
+
+/* Geradores de malha: listas de triângulos [v0,v1,v2] em coords locais. */
+function meshSphere(r, seg, rings) {
+  seg = seg || 10; rings = rings || 7;
+  const tris = [], ring = [];
+  for (let i = 0; i <= rings; i++) {
+    const phi = Math.PI * i / rings, row = [];
+    for (let j = 0; j <= seg; j++) {
+      const th = 2 * Math.PI * j / seg;
+      row.push(V(r * Math.sin(phi) * Math.cos(th), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(th)));
+    }
+    ring.push(row);
+  }
+  for (let i = 0; i < rings; i++) for (let j = 0; j < seg; j++) {
+    const a = ring[i][j], b = ring[i + 1][j], c = ring[i + 1][j + 1], d = ring[i][j + 1];
+    if (i > 0) tris.push([a, b, d]);
+    if (i < rings - 1) tris.push([b, c, d]);
+  }
+  return tris;
+}
+function meshBox(sx, sy, sz) {
+  const x = sx / 2, y = sy / 2, z = sz / 2;
+  const p = [V(-x,-y,-z),V(x,-y,-z),V(x,y,-z),V(-x,y,-z),V(-x,-y,z),V(x,-y,z),V(x,y,z),V(-x,y,z)];
+  const f = [[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[3,2,6,7],[4,5,1,0]];
+  const tris = [];
+  for (const q of f) { tris.push([p[q[0]], p[q[1]], p[q[2]]]); tris.push([p[q[0]], p[q[2]], p[q[3]]]); }
+  return tris;
+}
+function meshCyl(rTop, rBot, h, seg) {
+  seg = seg || 10;
+  const tris = [], top = [], bot = [];
+  for (let j = 0; j <= seg; j++) {
+    const th = 2 * Math.PI * j / seg, c = Math.cos(th), s = Math.sin(th);
+    top.push(V(rTop * c, h / 2, rTop * s));
+    bot.push(V(rBot * c, -h / 2, rBot * s));
+  }
+  for (let j = 0; j < seg; j++) {
+    tris.push([bot[j], top[j], top[j + 1]]);
+    tris.push([bot[j], top[j + 1], bot[j + 1]]);
+    if (rTop > 0.001) tris.push([V(0, h / 2, 0), top[j + 1], top[j]]);
+    if (rBot > 0.001) tris.push([V(0, -h / 2, 0), bot[j], bot[j + 1]]);
+  }
+  return tris;
+}
+
+/* Grupo animável (espelha os nós do pet_body.gd) */
+function Group(origin) {
+  return { origin: origin || V(0, 0, 0), rot: V(0, 0, 0), off: V(0, 0, 0), parts: [], visibleFlag: null };
+}
+/* Peça: triângulos + cor + transformação de construção (bake) */
+function bake(group, tris, color, pos, rot, scale, alphaTag) {
+  rot = rot || V(0, 0, 0); scale = scale || V(1, 1, 1);
+  const baked = tris.map(t => t.map(v => {
+    let p = V(v.x * scale.x, v.y * scale.y, v.z * scale.z);
+    p = xform(p, rot);
+    return V(p.x + pos.x, p.y + pos.y, p.z + pos.z);
+  }));
+  group.parts.push({ tris: baked, color, tag: alphaTag || null });
+}
+
+/* Cores do Godot (floats) */
+function C(r, g, b) { return [r * 255, g * 255, b * 255]; }
+function lighten(c, k) { return c.map(v => v + (255 - v) * k); }
+function darken(c, k) { return c.map(v => v * (1 - k)); }
+
+/* RNG determinístico p/ manchas da Zoe (LCG) */
+function lcg(seed) {
+  let s = seed >>> 0;
+  return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+}
+
+/* ================= Port do pet_body.gd ================= */
+
+const DEFS = {
+  sirius: {
+    kind: 'dog', scale: 1.15, chubby: 0.85, leggy: 1.18, snout: 1.25,
+    body: C(0.13, 0.12, 0.13), belly: C(0.2, 0.19, 0.2), muzzle: C(0.62, 0.6, 0.57),
+    eye: C(0.45, 0.28, 0.15), eyeSize: 1.0, ear: 'dog_floppy', tail: 'plume_up',
+    ruff: true, legFeathers: true, tongue: true,
+    name: 'Sirius', tag: 'Latido Potente — protetor e estabanado',
+    defense: 'bark', cute: 'sit_wag',
+  },
+  belatriz: {
+    kind: 'dog', scale: 0.8, chubby: 1.05, leggy: 0.85, snout: 0.7,
+    body: C(0.85, 0.7, 0.48), belly: C(0.93, 0.87, 0.72), muzzle: C(0.92, 0.86, 0.7),
+    eye: C(0.32, 0.2, 0.12), eyeSize: 1.45, ear: 'dog_floppy', tail: 'fluffy',
+    ruff: true, ruffColor: C(0.93, 0.87, 0.72), headTuft: true, beard: true,
+    legFeathers: true, blep: true,
+    name: 'Belatriz', tag: 'Modo Feroz — pequena e valente',
+    defense: 'ferocious', cute: 'belly_up',
+  },
+  zoe: {
+    kind: 'cat', scale: 1.0, chubby: 1.3, leggy: 1.0, snout: 1.0,
+    body: C(0.16, 0.12, 0.1), belly: C(0.72, 0.5, 0.3), muzzle: C(0.85, 0.68, 0.45),
+    eye: C(0.93, 0.68, 0.18), eyeSize: 1.15, ear: 'cat', tail: 'thin',
+    mottled: true, tailTip: C(0.88, 0.85, 0.78),
+    name: 'Zoe', tag: 'Escalada Fantasma — bagunceira invisível',
+    defense: 'hide', cute: 'play',
+  },
+  minerva: {
+    kind: 'cat', scale: 1.0, chubby: 0.9, leggy: 1.0, snout: 1.0,
+    body: C(0.08, 0.08, 0.09), belly: C(0.13, 0.13, 0.15), muzzle: C(0.12, 0.12, 0.13),
+    eye: C(0.78, 0.78, 0.3), eyeSize: 1.2, earSize: 1.25, ear: 'cat', tail: 'thin',
+    whiskers: true, fangs: true,
+    name: 'Minerva', tag: 'Patada Potente — rápida e implacável',
+    defense: 'pounce', cute: 'rub',
+  },
+};
+
+function buildPet(def) {
+  const chub = def.chubby, leggy = def.leggy, snout = def.snout;
+  const lift = 0.28 * (leggy - 1);
+  const isCat = def.kind === 'cat';
+  const core = Group(V(0, 0, 0));
+  const head = Group(V(0, 0.62 + lift, 0.42));
+  const tail = Group(V(0, 0.52 + lift, -0.42));
+  const legs = [];
+  const dark = C(0.05, 0.04, 0.04);
+
+  // Corpo
+  bake(core, meshSphere(0.34 * chub), def.body, V(0, 0.42 + lift, 0), null, V(1, 0.85, 1.35));
+  bake(core, meshSphere(0.22 * chub), def.belly, V(0, 0.32 + lift, 0.12), null, V(1, 0.8, 1));
+  if (def.ruff) {
+    bake(core, meshSphere(0.24 * chub), def.ruffColor || lighten(def.body, 0.07), V(0, 0.46 + lift, 0.26), null, V(1, 0.9, 1));
+  }
+
+  // Cabeça (peças em coords do core, origem do grupo em head.origin)
+  const H = head.origin;
+  const hp = (x, y, z) => V(H.x + x, H.y + y, H.z + z);
+  bake(head, meshSphere(0.24), def.body, hp(0, 0, 0));
+  if (def.headTuft) bake(head, meshSphere(0.11), lighten(def.body, 0.12), hp(0, 0.2, 0.06), null, V(1, 0.8, 1));
+  const sf = 0.09 * (snout - 1);
+  if (isCat) bake(head, meshSphere(0.08), def.muzzle, hp(0, -0.05, 0.2));
+  else bake(head, meshBox(0.16, 0.12, 0.18 * snout), def.muzzle, hp(0, -0.06, 0.22 + sf));
+  if (def.beard) bake(head, meshSphere(0.1), def.muzzle, hp(0, -0.12, 0.18 + sf), null, V(1, 0.9, 1));
+  bake(head, meshSphere(0.035, 8, 5), dark, hp(0, -0.03, 0.3 + sf * 2));
+  // Língua
+  if (def.tongue || def.blep) {
+    const ts = def.blep ? V(0.05, 0.02, 0.08) : V(0.07, 0.02, 0.12);
+    bake(head, meshBox(ts.x, ts.y, ts.z), C(0.93, 0.5, 0.55), hp(0, def.blep ? -0.16 : -0.14, 0.24 + sf), V(0.25, 0, 0), null, 'tongue');
+  }
+  // Olhos com íris
+  const er = 0.05 * (def.eyeSize || 1);
+  for (const side of [-1, 1]) {
+    const e = { x: 0.1 * side, y: 0.08, z: 0.18 };
+    bake(head, meshSphere(er, 8, 6), C(0.93, 0.9, 0.86), hp(e.x, e.y, e.z));
+    bake(head, meshSphere(er * 0.72, 8, 6), def.eye, hp(e.x, e.y, e.z + 0.02));
+    bake(head, meshSphere(er * 0.4, 8, 5), C(0.06, 0.05, 0.05), hp(e.x, e.y, e.z + 0.045));
+    bake(head, meshSphere(er * 0.16, 6, 4), [255, 255, 255], hp(e.x + 0.012 * side, e.y + 0.015, e.z + 0.06));
+  }
+  // Bigodes / presinhas
+  if (def.whiskers) {
+    for (const side of [-1, 1]) for (let i = 0; i < 2; i++) {
+      bake(head, meshBox(0.17, 0.008, 0.008), C(0.93, 0.93, 0.9),
+        hp(0.15 * side, -0.04 - 0.035 * i, 0.19 + sf),
+        V(0, 0.35 * side, 0.12 * side * (i === 0 ? 1 : -0.5)));
+    }
+  }
+  if (def.fangs) {
+    for (const side of [-1, 1]) {
+      bake(head, meshCyl(0, 0.014, 0.04, 6), C(0.95, 0.94, 0.9), hp(0.035 * side, -0.12, 0.24 + sf), V(Math.PI, 0, 0));
+    }
+  }
+  // Orelhas
+  const es = def.earSize || 1;
+  if (def.ear === 'cat') {
+    bake(head, meshCyl(0, 0.09 * es, 0.16 * es, 8), def.body, hp(-0.13, 0.2 + 0.03 * es, 0));
+    bake(head, meshCyl(0, 0.09 * es, 0.16 * es, 8), def.body, hp(0.13, 0.2 + 0.03 * es, 0));
+  } else if (def.ear === 'dog_up') {
+    bake(head, meshCyl(0, 0.1, 0.22, 8), def.body, hp(-0.13, 0.24, -0.02));
+    bake(head, meshCyl(0, 0.1, 0.22, 8), def.body, hp(0.13, 0.24, -0.02));
+  } else {
+    bake(head, meshBox(0.08, 0.26, 0.14), def.body, hp(-0.22, 0.05, 0), V(0, 0, 0.5));
+    bake(head, meshBox(0.08, 0.26, 0.14), def.body, hp(0.22, 0.05, 0), V(0, 0, -0.5));
+  }
+
+  // Manchas escaminha (Zoe)
+  if (def.mottled) {
+    const rng = lcg(424242);
+    const cols = [C(0.78, 0.45, 0.16), C(0.85, 0.68, 0.42)];
+    const bc = V(0, 0.42 + lift, 0);
+    for (let i = 0; i < 14; i++) {
+      const d = norm(V(rng() * 2 - 1, rng() * 1.2 - 0.2, rng() * 2 - 1));
+      const p = V(bc.x + d.x * 0.3 * chub, bc.y + d.y * 0.28 * chub, bc.z + d.z * 0.4 * chub);
+      bake(core, meshSphere(0.05 + rng() * 0.04, 7, 5), cols[i % 2], p, null, V(1, 0.7, 1));
+    }
+    for (let i = 0; i < 4; i++) {
+      const d = norm(V(rng() * 2 - 1, rng(), rng() * 0.8 + 0.2));
+      bake(head, meshSphere(0.04 + rng() * 0.02, 7, 5), cols[i % 2], hp(d.x * 0.21, d.y * 0.21, d.z * 0.21), null, V(1, 0.7, 1));
+    }
+  }
+
+  // Pernas
+  for (let i = 0; i < 4; i++) {
+    const lx = i % 2 === 0 ? -0.16 : 0.16;
+    const lz = i < 2 ? 0.2 : -0.2;
+    const leg = Group(V(lx, 0.18 + lift, lz));
+    bake(leg, meshCyl(0.05, 0.05, 0.28 * leggy, 8), darken(def.body, 0.15), V(lx, 0.18 + lift - 0.08 * leggy, lz));
+    if (def.legFeathers) bake(leg, meshSphere(0.06, 7, 5), lighten(def.body, 0.1), V(lx, 0.18 + lift - 0.03, lz - 0.06), null, V(1, 1.4, 1));
+    legs.push(leg);
+  }
+
+  // Rabo
+  const T = tail.origin;
+  const tp = (x, y, z) => V(T.x + x, T.y + y, T.z + z);
+  if (def.tail === 'plume_up') {
+    bake(tail, meshSphere(0.1), def.body, tp(0, 0.06, -0.04));
+    bake(tail, meshSphere(0.13), lighten(def.body, 0.06), tp(0, 0.22, 0));
+    bake(tail, meshSphere(0.12), lighten(def.body, 0.12), tp(0, 0.36, 0.1));
+    bake(tail, meshSphere(0.09), lighten(def.body, 0.18), tp(0, 0.44, 0.22));
+  } else if (def.tail === 'fluffy') {
+    bake(tail, meshSphere(0.1), def.body, tp(0, 0.08, -0.08));
+    bake(tail, meshSphere(0.08), lighten(def.body, 0.15), tp(0, 0.18, -0.14));
+  } else {
+    bake(tail, meshCyl(0.035, 0.035, 0.34, 8), def.body, tp(0, 0.14, -0.06), V(0.5, 0, 0));
+    if (def.tailTip) bake(tail, meshSphere(0.05, 8, 5), def.tailTip, tp(0, 0.3, 0.02));
+  }
+
+  // Bolinha (pose "play")
+  const ball = Group(V(0, 0, 0));
+  bake(ball, meshSphere(0.09, 9, 6), C(0.9, 0.25, 0.3), V(0, 0.09, 0.55));
+  bake(ball, meshBox(0.3, 0.03, 0.06), C(0.95, 0.9, 0.85), V(0, 0.09, 0.55));
+  ball.visibleFlag = 'ball';
+
+  return { def, core, head, tail, legs, ball, scale: def.scale };
+}
+
+/* ================= Poses (port do animate()) ================= */
+
+function applyPose(pet, pose, t) {
+  const cr = V(0, 0, 0), cp = V(0, 0, 0);
+  let wag = 3, headRx = 0, legSwing = null, ballVisible = false, alpha = 1, ballBounce = 0;
+  switch (pose) {
+    case 'walk': {
+      const s = Math.sin(t * 10) * 0.6;
+      legSwing = i => s * (i % 2 === 0 ? 1 : -1);
+      cp.y = Math.abs(Math.sin(t * 10)) * 0.04; wag = 6; break;
+    }
+    case 'idle': cp.y = Math.sin(t * 2) * 0.015; break;
+    case 'bark': cr.x = -0.25; headRx = Math.sin(t * 20) * 0.2; wag = 10; break;
+    case 'ferocious': cr.x = 0.2; cp.y = Math.abs(Math.sin(t * 14)) * 0.05; wag = 14; break;
+    case 'pounce': cr.x = 0.35; wag = 8; break;
+    case 'hide': cp.y = -0.12; cr.x = 0.1; alpha = 0.35; break;
+    case 'sit_wag': cr.x = -0.5; cp.y = -0.06; wag = 16; break;
+    case 'belly_up': cr.z = Math.PI; cp.y = 0.92; legSwing = i => Math.sin(t * 6 + i) * 0.3; break;
+    case 'play': cr.x = 0.3; cp.y = Math.abs(Math.sin(t * 8)) * 0.08; wag = 12; ballVisible = true; ballBounce = Math.abs(Math.sin(t * 8 + 1)) * 0.25; break;
+    case 'rub': cr.z = Math.sin(t * 5) * 0.35; wag = 10; break;
+  }
+  pet.core.rot = cr; pet.core.off = cp;
+  pet.head.rot = V(headRx, 0, 0);
+  pet.tail.rot = V(0, Math.sin(t * wag) * 0.6, 0);
+  pet.legs.forEach((leg, i) => { leg.rot = V(legSwing ? legSwing(i) : 0, 0, 0); });
+  pet.ballVisible = ballVisible;
+  pet.ballBounce = ballBounce;
+  pet.alpha = alpha;
+  pet.tongueOut = pet.def.blep || (pet.def.tongue && (pose === 'walk' || pose === 'sit_wag' || pose === 'play'));
+}
+
+/* ================= Cena / desenho ================= */
+
+const LIGHT = norm(V(-0.45, 1, 0.65));
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function makeViewer(canvas, pet) {
+  const ctx = canvas.getContext('2d');
+  let yaw = 0.6, pitch = 0.22, dragging = false, lastX = 0, lastY = 0, idleSpin = !REDUCED;
+
+  canvas.parentElement.addEventListener('pointerdown', e => {
+    dragging = true; idleSpin = false; lastX = e.clientX; lastY = e.clientY;
+    canvas.parentElement.setPointerCapture(e.pointerId);
+  });
+  canvas.parentElement.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    yaw += (e.clientX - lastX) * 0.011;
+    pitch = Math.max(-0.15, Math.min(0.75, pitch + (e.clientY - lastY) * 0.008));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  const stop = () => { dragging = false; };
+  canvas.parentElement.addEventListener('pointerup', stop);
+  canvas.parentElement.addEventListener('pointercancel', stop);
+
+  function groupVerts(group, out, petScale, extraOff, skipCore) {
+    const o = group.origin;
+    for (const part of group.parts) {
+      if (part.tag === 'tongue' && !pet.tongueOut) continue;
+      for (const tri of part.tris) {
+        const w = tri.map(v => {
+          // anim do grupo: gira em torno da origem do grupo
+          let p = V(v.x - o.x, v.y - o.y, v.z - o.z);
+          p = xform(p, group.rot);
+          p = V(p.x + o.x + group.off.x, p.y + o.y + group.off.y, p.z + o.z + group.off.z);
+          // anim do core (raiz do corpo); a bolinha fica fora do core
+          if (!skipCore) {
+            p = xform(p, pet.core.rot);
+            p = V(p.x + pet.core.off.x, p.y + pet.core.off.y, p.z + pet.core.off.z);
+          }
+          if (extraOff) p = V(p.x + extraOff.x, p.y + extraOff.y, p.z + extraOff.z);
+          // escala do pet + órbita da câmera
+          p = V(p.x * petScale, p.y * petScale, p.z * petScale);
+          p = rotY(p, yaw);
+          p = rotX(p, pitch);
+          return p;
+        });
+        out.push({ w, color: part.color });
+      }
+    }
+  }
+
+  function frame(t) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const cw = canvas.clientWidth, ch = canvas.clientHeight;
+    if (canvas.width !== cw * dpr) { canvas.width = cw * dpr; canvas.height = ch * dpr; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+
+    if (idleSpin) yaw += 0.004;
+    applyPose(pet, pet.pose, t / 1000);
+
+    // sombra no chão
+    const shadowScale = pet.scale * (1 + (pet.core.off.y < 0 ? 0.1 : 0));
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--shadow');
+    ctx.beginPath();
+    ctx.ellipse(cw / 2, ch * 0.86, 62 * shadowScale, 13 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // coleta triângulos
+    const tris = [];
+    groupVerts(pet.core, tris, pet.scale);
+    groupVerts(pet.head, tris, pet.scale);
+    groupVerts(pet.tail, tris, pet.scale);
+    for (const leg of pet.legs) groupVerts(leg, tris, pet.scale);
+    if (pet.ballVisible) groupVerts(pet.ball, tris, pet.scale, V(0, pet.ballBounce, 0), true);
+
+    // projeção (S limita o zoom pela altura para o pet caber no palco)
+    const S = Math.min(cw, ch * 1.5);
+    const camY = 0.62 * pet.scale, camZ = 3.1, f = 1.1;
+    const projected = [];
+    for (const item of tris) {
+      const pv = item.w.map(p => {
+        const z = camZ - p.z;
+        return { x: cw / 2 + (p.x * f / z) * S, y: ch * 0.86 - ((p.y - camY) * f / z + camY * f / camZ) * S, z };
+      });
+      // sem backface culling (windings mistos); normal virada para a câmera
+      let n = norm(cross(sub(item.w[1], item.w[0]), sub(item.w[2], item.w[0])));
+      if (n.z < 0) n = V(-n.x, -n.y, -n.z);
+      const shade = 0.52 + 0.48 * Math.max(0, dot(n, LIGHT));
+      projected.push({ pv, depth: (pv[0].z + pv[1].z + pv[2].z) / 3, c: item.color, shade });
+    }
+    projected.sort((a, b) => b.depth - a.depth);
+
+    ctx.globalAlpha = pet.alpha;
+    for (const tri of projected) {
+      const c = tri.c, s = tri.shade;
+      ctx.fillStyle = `rgb(${c[0] * s | 0},${c[1] * s | 0},${c[2] * s | 0})`;
+      ctx.strokeStyle = ctx.fillStyle;
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(tri.pv[0].x, tri.pv[0].y);
+      ctx.lineTo(tri.pv[1].x, tri.pv[1].y);
+      ctx.lineTo(tri.pv[2].x, tri.pv[2].y);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ================= Montagem da página ================= */
+
+const POSE_LABELS = { idle: 'Parado', walk: 'Andar', defense: 'Defesa', cute: 'Fofura' };
+const grid = document.getElementById('grid');
+
+for (const id of ['sirius', 'belatriz', 'zoe', 'minerva']) {
+  const def = DEFS[id];
+  const pet = buildPet(def);
+  pet.pose = 'idle';
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  const swatchColor = `rgb(${def.body[0] | 0},${def.body[1] | 0},${def.body[2] | 0})`;
+  card.innerHTML = `
+    <div class="plate">
+      <span class="swatch" style="background:${swatchColor}"></span>
+      <span class="pet-name">${def.name}</span>
+      <span class="tagline">${def.tag}</span>
+    </div>
+    <div class="stage"><canvas aria-label="Modelo 3D de ${def.name}"></canvas><span class="hint">arraste p/ girar</span></div>
+    <div class="poses" role="group" aria-label="Poses de ${def.name}"></div>
+  `;
+  grid.appendChild(card);
+
+  const posesEl = card.querySelector('.poses');
+  const buttons = {};
+  for (const key of ['idle', 'walk', 'defense', 'cute']) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = POSE_LABELS[key];
+    b.setAttribute('aria-pressed', key === 'idle' ? 'true' : 'false');
+    b.addEventListener('click', () => {
+      pet.pose = key === 'defense' ? def.defense : key === 'cute' ? def.cute : key;
+      for (const k in buttons) buttons[k].setAttribute('aria-pressed', k === key ? 'true' : 'false');
+    });
+    buttons[key] = b;
+    posesEl.appendChild(b);
+  }
+
+  makeViewer(card.querySelector('canvas'), pet);
+}
+
+</script>
