@@ -6,7 +6,7 @@ Jogo 3D cooperativo (1–4 jogadores) estilo *Overcooked*, estrelado por quatro 
 |---|---|---|---|
 | **Sirius** 🐕 | Cão médio, peludo e preto; protetor e estabanado | **Latido Potente** — assusta ameaças em área (mas derruba coisas!) | **Bom Menino** — senta balançando o rabinho |
 | **Belatriz** 🐕 | Cadela pequena e dourada, de olhos pidões | **Modo Feroz** — susto máximo contra invasores | **Barriguinha** — vira de barriga pra cima |
-| **Zoe** 🐈 | Gata rajada preto/laranja, gorda e bagunceira | **Escalada Fantasma** — fica invisível e embosca | **Hora de Brincar** — brinca com a bolinha |
+| **Zoe** 🐈 | Gata escaminha (casco de tartaruga), gorda e bagunceira | **Escalada Fantasma** — fica invisível e embosca | **Hora de Brincar** — brinca com a bolinha |
 | **Minerva** 🐈‍⬛ | Gata preta de cara de mal, mas carinhosa | **Patada Potente** — golpe forte + avanço rápido | **Esfregadinha** — se esfrega na perna dos donos |
 
 ## A história
