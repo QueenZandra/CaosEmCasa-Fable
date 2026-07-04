@@ -6,13 +6,23 @@ const ORDER := ["sirius", "belatriz", "zoe", "minerva"]
 const DEFS := {
 	"sirius": {
 		# Cão porte médio, peludo, preto. Protetor, latido potente, estabanado.
+		# Visual baseado nas fotos reais: esguio, pernas longas, juba fofa,
+		# rabo de pluma enrolado sobre as costas, focinho grisalho, olhos
+		# castanhos e a língua de fora quando está feliz.
 		"kind": "dog",
 		"scale": 1.15,
-		"chubby": 1.0,
+		"chubby": 0.85,
+		"leggy": 1.18,
+		"snout": 1.25,
 		"body_color": Color(0.13, 0.12, 0.13),
-		"belly_color": Color(0.22, 0.2, 0.21),
+		"belly_color": Color(0.2, 0.19, 0.2),
+		"muzzle_color": Color(0.62, 0.6, 0.57),
+		"eye_color": Color(0.45, 0.28, 0.15),
+		"ruff": true,
+		"leg_feathers": true,
+		"tongue": true,
 		"ear": "dog_floppy",
-		"tail": "fluffy",
+		"tail": "plume_up",
 		"speed": 5.2,
 		"ability": "bark",         # AoE scare, knocks nearby objects over (clumsy!)
 		"cute": "good_boy",        # senta e balança o rabinho

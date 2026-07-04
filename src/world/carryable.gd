@@ -29,3 +29,18 @@ func _ready() -> void:
 			var toy_body := MeshLib.sphere(self, 0.1, Color(0.6, 0.6, 0.65), Vector3(0, 0.08, 0), 0.7)
 			toy_body.scale = Vector3(1.4, 0.8, 1.0)
 			MeshLib.cone(self, 0.03, 0.2, Color(0.85, 0.5, 0.55), Vector3(-0.16, 0.08, 0))
+		"monkey":
+			# Macaquinho de pelúcia — o brinquedo favorito do Sirius.
+			var plush := Color(0.76, 0.6, 0.42)
+			var face := Color(0.93, 0.85, 0.6)
+			MeshLib.sphere(self, 0.09, plush, Vector3(0, 0.1, 0), 1.1)
+			MeshLib.sphere(self, 0.07, plush, Vector3(0, 0.24, 0))
+			MeshLib.sphere(self, 0.05, face, Vector3(0, 0.22, 0.045), 0.8)
+			MeshLib.sphere(self, 0.015, Color(0.2, 0.15, 0.1), Vector3(-0.02, 0.24, 0.08))
+			MeshLib.sphere(self, 0.015, Color(0.2, 0.15, 0.1), Vector3(0.02, 0.24, 0.08))
+			var arm_l := MeshLib.capsule(self, 0.025, 0.16, plush, Vector3(-0.1, 0.12, 0))
+			arm_l.rotation.z = 0.6
+			var arm_r := MeshLib.capsule(self, 0.025, 0.16, plush, Vector3(0.1, 0.12, 0))
+			arm_r.rotation.z = -0.6
+			var monkey_tail := MeshLib.capsule(self, 0.02, 0.18, plush, Vector3(0, 0.1, -0.09))
+			monkey_tail.rotation.x = 1.0

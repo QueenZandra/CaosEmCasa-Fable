@@ -20,6 +20,7 @@ var _head: Node3D
 var _tail: Node3D
 var _legs: Array[Node3D] = []
 var _ball: MeshInstance3D  # bolinha da Zoe (pose "play")
+var _tongue: MeshInstance3D = null
 var _base_scale := 1.0
 
 
@@ -44,29 +45,52 @@ func build(def: Dictionary) -> void:
 	var chubby := float(def.get("chubby", 1.0))
 	var body_col: Color = def.get("body_color", Color.GRAY)
 	var belly_col: Color = def.get("belly_color", Color.LIGHT_GRAY)
+	var muzzle_col: Color = def.get("muzzle_color", belly_col)
 	var is_cat: bool = def.get("kind", "dog") == "cat"
+	var leggy := float(def.get("leggy", 1.0))     # pernas longas/porte esguio
+	var snout := float(def.get("snout", 1.0))     # comprimento do focinho
+	var lift := 0.28 * (leggy - 1.0)              # eleva o corpo junto das pernas
 
 	# Corpo
-	_body = MeshLib.sphere(_core, 0.34 * chubby, body_col, Vector3(0, 0.42, 0), 0.85)
+	_body = MeshLib.sphere(_core, 0.34 * chubby, body_col, Vector3(0, 0.42 + lift, 0), 0.85)
 	_body.scale = Vector3(1.0, 1.0, 1.35)
-	MeshLib.sphere(_core, 0.22 * chubby, belly_col, Vector3(0, 0.32, 0.12), 0.8)
+	MeshLib.sphere(_core, 0.22 * chubby, belly_col, Vector3(0, 0.32 + lift, 0.12), 0.8)
+	if def.get("ruff", false):
+		# Juba/peitoral fofo
+		MeshLib.sphere(_core, 0.24 * chubby, body_col.lightened(0.07), Vector3(0, 0.46 + lift, 0.26), 0.9)
 
 	# Cabeça
 	_head = Node3D.new()
-	_head.position = Vector3(0, 0.62, 0.42)
+	_head.position = Vector3(0, 0.62 + lift, 0.42)
 	_core.add_child(_head)
 	MeshLib.sphere(_head, 0.24, body_col, Vector3.ZERO)
 	# Focinho
+	var snout_fwd := 0.09 * (snout - 1.0)
 	if is_cat:
-		MeshLib.sphere(_head, 0.08, belly_col, Vector3(0, -0.05, 0.2))
+		MeshLib.sphere(_head, 0.08, muzzle_col, Vector3(0, -0.05, 0.2))
 	else:
-		var muzzle := MeshLib.box(_head, Vector3(0.16, 0.12, 0.18), belly_col, Vector3(0, -0.06, 0.22))
-		muzzle.scale = Vector3.ONE
-	MeshLib.sphere(_head, 0.035, Color(0.05, 0.04, 0.04), Vector3(0, -0.03, 0.3))  # nariz
-	# Olhos (grandes e pidões para a Belatriz)
+		MeshLib.box(_head, Vector3(0.16, 0.12, 0.18 * snout), muzzle_col, Vector3(0, -0.06, 0.22 + snout_fwd))
+	MeshLib.sphere(_head, 0.035, Color(0.05, 0.04, 0.04), Vector3(0, -0.03, 0.3 + snout_fwd * 2.0))  # nariz
+	# Língua (aparece nas poses felizes)
+	if def.get("tongue", false):
+		_tongue = MeshLib.box(
+			_head, Vector3(0.07, 0.02, 0.12), Color(0.93, 0.5, 0.55),
+			Vector3(0, -0.14, 0.24 + snout_fwd)
+		)
+		_tongue.rotation.x = 0.25
+		_tongue.visible = false
+	# Olhos (grandes e pidões para a Belatriz; com íris se o pet tiver cor)
 	var eye_r := 0.05 if String(_def.get("ear", "")) != "dog_up" else 0.07
-	MeshLib.sphere(_head, eye_r, Color(0.08, 0.07, 0.06), Vector3(-0.1, 0.08, 0.18))
-	MeshLib.sphere(_head, eye_r, Color(0.08, 0.07, 0.06), Vector3(0.1, 0.08, 0.18))
+	for side in [-1.0, 1.0]:
+		var eye_pos := Vector3(0.1 * side, 0.08, 0.18)
+		if def.has("eye_color"):
+			var iris: Color = def["eye_color"]
+			MeshLib.sphere(_head, eye_r, Color(0.93, 0.9, 0.86), eye_pos)
+			MeshLib.sphere(_head, eye_r * 0.72, iris, eye_pos + Vector3(0, 0, 0.02))
+			MeshLib.sphere(_head, eye_r * 0.4, Color(0.06, 0.05, 0.05), eye_pos + Vector3(0, 0, 0.045))
+			MeshLib.sphere(_head, eye_r * 0.16, Color.WHITE, eye_pos + Vector3(0.012 * side, 0.015, 0.06))
+		else:
+			MeshLib.sphere(_head, eye_r, Color(0.08, 0.07, 0.06), eye_pos)
 	# Orelhas
 	match String(def.get("ear", "cat")):
 		"cat":
@@ -95,21 +119,31 @@ func build(def: Dictionary) -> void:
 		var leg := Node3D.new()
 		var lx := -0.16 if i % 2 == 0 else 0.16
 		var lz := 0.2 if i < 2 else -0.2
-		leg.position = Vector3(lx, 0.18, lz)
+		leg.position = Vector3(lx, 0.18 + lift, lz)
 		_core.add_child(leg)
-		MeshLib.cylinder(leg, 0.05, 0.28, body_col.darkened(0.15), Vector3(0, -0.08, 0))
+		MeshLib.cylinder(leg, 0.05, 0.28 * leggy, body_col.darkened(0.15), Vector3(0, -0.08 * leggy, 0))
+		if def.get("leg_feathers", false):
+			# Franjas fofas atrás das pernas
+			MeshLib.sphere(leg, 0.06, body_col.lightened(0.1), Vector3(0, -0.03, -0.06), 1.4)
 		_legs.append(leg)
 
 	# Rabo
 	_tail = Node3D.new()
-	_tail.position = Vector3(0, 0.52, -0.42)
+	_tail.position = Vector3(0, 0.52 + lift, -0.42)
 	_core.add_child(_tail)
-	if def.get("tail", "thin") == "fluffy":
-		MeshLib.sphere(_tail, 0.1, body_col, Vector3(0, 0.08, -0.08))
-		MeshLib.sphere(_tail, 0.08, body_col.lightened(0.15), Vector3(0, 0.18, -0.14))
-	else:
-		var seg := MeshLib.cylinder(_tail, 0.035, 0.34, body_col, Vector3(0, 0.14, -0.06))
-		seg.rotation.x = 0.5
+	match String(def.get("tail", "thin")):
+		"plume_up":
+			# Pluma enorme enrolada sobre as costas (marca registrada do Sirius)
+			MeshLib.sphere(_tail, 0.1, body_col, Vector3(0, 0.06, -0.04))
+			MeshLib.sphere(_tail, 0.13, body_col.lightened(0.06), Vector3(0, 0.22, 0.0))
+			MeshLib.sphere(_tail, 0.12, body_col.lightened(0.12), Vector3(0, 0.36, 0.1))
+			MeshLib.sphere(_tail, 0.09, body_col.lightened(0.18), Vector3(0, 0.44, 0.22))
+		"fluffy":
+			MeshLib.sphere(_tail, 0.1, body_col, Vector3(0, 0.08, -0.08))
+			MeshLib.sphere(_tail, 0.08, body_col.lightened(0.15), Vector3(0, 0.18, -0.14))
+		_:
+			var seg := MeshLib.cylinder(_tail, 0.035, 0.34, body_col, Vector3(0, 0.14, -0.06))
+			seg.rotation.x = 0.5
 
 	# Bolinha (aparece só na pose "play")
 	_ball = MeshLib.sphere(self, 0.09, Color(0.9, 0.25, 0.3), Vector3(0, 0.09, 0.55))
@@ -183,6 +217,8 @@ func animate(delta: float) -> void:
 	if pose != "belly_up" and pose != "play":
 		_ball.visible = false
 	_tail.rotation.y = sin(_t * wag_speed) * 0.6
+	if _tongue != null:
+		_tongue.visible = pose in ["walk", "sit_wag", "play"]
 
 
 func flash(color: Color) -> void:

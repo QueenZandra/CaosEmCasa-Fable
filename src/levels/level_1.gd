@@ -17,7 +17,7 @@ func setup_level() -> void:
 	add_child(owners)
 	if is_host:
 		spawn_carryable("ball", house.sofa_pos + Vector3(1.2, 0, 1.6))
-		spawn_carryable("toy_bone", house.sofa_pos + Vector3(-1.6, 0, 1.4))
+		spawn_carryable("monkey", house.sofa_pos + Vector3(-1.6, 0, 1.4))
 
 
 func tick_level(_delta: float) -> void:
