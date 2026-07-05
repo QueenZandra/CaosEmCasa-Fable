@@ -66,6 +66,14 @@ func build(def: Dictionary) -> void:
 		var leg := Node3D.new()
 		_core.add_child(leg)
 		_legs.append(leg)
+	# Modelo externo (.glb em assets/pets/<id>.glb) tem prioridade sobre a
+	# escultura procedural — ver docs/MODELOS-3D.md.
+	if _try_load_model():
+		_ball = Node3D.new()
+		add_child(_ball)
+		PetMesh.ball(_ball, 0.09, Vector3(0, 0.09, 0.55), Color(0.9, 0.25, 0.3), Vector3.ONE, 9)
+		_ball.visible = false
+		return
 	match _pet_id:
 		"sirius":
 			_build_sirius()
@@ -81,6 +89,93 @@ func build(def: Dictionary) -> void:
 	PetMesh.ball(_ball, 0.09, Vector3(0, 0.09, 0.55), Color(0.9, 0.25, 0.3), Vector3.ONE, 9)
 	PetMesh.ball(_ball, 0.092, Vector3(0, 0.09, 0.55), Color(0.95, 0.9, 0.85), Vector3(1.0, 0.22, 1.0), 9)
 	_ball.visible = false
+
+
+## ------------------------------------------------ modelo externo (.glb)
+
+var _model_anim: AnimationPlayer = null
+var _model_mode := false
+var _model_has_anim := false
+
+
+func _try_load_model() -> bool:
+	var path := "res://assets/pets/%s.glb" % _pet_id
+	if not ResourceLoader.exists(path):
+		return false
+	var packed: PackedScene = load(path)
+	if packed == null:
+		return false
+	var model: Node3D = packed.instantiate()
+	_core.add_child(model)
+	_model_mode = true
+	# Orientação: glTF costuma olhar para -Z; o jogo usa +Z como frente.
+	model.rotation.y = float(_def.get("model_yaw", PI))
+	# Escala e alinhamento automáticos: altura-alvo ~0.9 e patas no chão.
+	var aabb := _merged_aabb(model)
+	if aabb.size.y > 0.001:
+		var target_height := 0.9
+		var k := target_height / aabb.size.y
+		model.scale = Vector3.ONE * k
+		aabb = _merged_aabb(model)
+		model.position.y -= aabb.position.y
+		model.position.z = -(aabb.position.z + aabb.size.z * 0.5)
+	# Animações do modelo (se houver): mapeadas por nome nas poses.
+	_model_anim = _find_anim_player(model)
+	return true
+
+
+func _merged_aabb(root: Node3D) -> AABB:
+	var result := AABB()
+	var first := true
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			var box: AABB = mi.global_transform * mi.get_aabb() if mi.is_inside_tree() else mi.transform * mi.get_aabb()
+			if first:
+				result = box
+				first = false
+			else:
+				result = result.merge(box)
+		stack.append_array(n.get_children())
+	return result
+
+
+func _find_anim_player(root: Node) -> AnimationPlayer:
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is AnimationPlayer:
+			return n
+		stack.append_array(n.get_children())
+	return null
+
+
+## Nome de animação do modelo para uma pose (busca por substring).
+func _model_anim_for(p: String) -> String:
+	if _model_anim == null:
+		return ""
+	var wanted: Array = {
+		"walk": ["walk", "run", "trot"],
+		"idle": ["idle", "breath"],
+		"sit_wag": ["sit"],
+		"belly_up": ["roll", "belly", "lie", "death"],
+		"play": ["jump", "play", "hop"],
+		"bark": ["bark", "attack", "shout"],
+		"ferocious": ["attack", "angry", "growl"],
+		"pounce": ["attack", "jump", "pounce"],
+		"rub": ["rub", "idle2", "wiggle"],
+		"eat": ["eat"],
+		"sad": ["sad", "idle"],
+		"hide": ["crouch", "sneak", "lie"],
+	}.get(p, [])
+	for anim_name in _model_anim.get_animation_list():
+		var low := String(anim_name).to_lower()
+		for key in wanted:
+			if low.contains(key):
+				return anim_name
+	return ""
 
 
 ## ------------------------------------------------ esculturas por pet
@@ -385,6 +480,18 @@ func set_pose(p: String) -> void:
 	pose = p
 	_ball.visible = p == "play"
 	_set_ghost(p == "hide")
+	if _model_mode:
+		# Usa a animação embutida do modelo quando existir uma compatível;
+		# senão a pose procedural do _core anima o modelo estático.
+		var anim_name := _model_anim_for(p)
+		_model_has_anim = anim_name != ""
+		if _model_has_anim:
+			var anim := _model_anim.get_animation(anim_name)
+			if anim != null:
+				anim.loop_mode = Animation.LOOP_LINEAR
+			_model_anim.play(anim_name, 0.2)
+		elif _model_anim != null:
+			_model_anim.stop()
 
 
 func animate(delta: float) -> void:
@@ -476,6 +583,11 @@ func animate(delta: float) -> void:
 		"eat":
 			core_rot.x = 0.3
 			head_rx = 0.4 + sin(_t * 12.0) * 0.1
+	if _model_mode and _model_has_anim:
+		# A animação embutida do modelo cuida do movimento nesta pose.
+		core_rot = Vector3.ZERO
+		core_pos = Vector3.ZERO
+		core_scale = Vector3.ONE
 	_core.rotation = _core.rotation.lerp(core_rot, 12.0 * delta)
 	_core.position = _core.position.lerp(core_pos, 12.0 * delta)
 	_core.scale = _core.scale.lerp(core_scale, 12.0 * delta)
@@ -518,6 +630,6 @@ func _set_ghost(on: bool) -> void:
 	var stack: Array[Node] = [_core]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
-		if n is MeshInstance3D and n.has_meta("loft"):
-			(n as MeshInstance3D).material_override = target
+		if n is MeshInstance3D and (n.has_meta("loft") or _model_mode):
+			(n as MeshInstance3D).material_override = target if on or n.has_meta("loft") else null
 		stack.append_array(n.get_children())
