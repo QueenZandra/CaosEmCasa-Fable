@@ -143,23 +143,19 @@ static func ball(parent: Node3D, r: float, pos: Vector3, color: Color, scale := 
 	return _emit(parent, verts, colors, tris)
 
 
-## Normais suaves por vértice + SurfaceTool -> MeshInstance3D.
+## Normais por FACE (flat shading facetado, estilo das folhas de design)
+## + SurfaceTool -> MeshInstance3D.
 static func _emit(parent: Node3D, verts: Array[Vector3], colors: Array[Color], tris: Array) -> MeshInstance3D:
-	var normals: Array[Vector3] = []
-	normals.resize(verts.size())
-	normals.fill(Vector3.ZERO)
-	for t in tris:
-		var n: Vector3 = (verts[t[1]] - verts[t[0]]).cross(verts[t[2]] - verts[t[0]])
-		normals[t[0]] += n
-		normals[t[1]] += n
-		normals[t[2]] += n
-	for i in normals.size():
-		normals[i] = normals[i].normalized()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for t in tris:
+		var n: Vector3 = (verts[t[1]] - verts[t[0]]).cross(verts[t[2]] - verts[t[0]])
+		if n.length_squared() < 1e-12:
+			n = Vector3.UP
+		else:
+			n = n.normalized()
 		for idx in t:
-			st.set_normal(normals[idx])
+			st.set_normal(n)
 			st.set_color(colors[idx])
 			st.add_vertex(verts[idx])
 	var mi := MeshInstance3D.new()

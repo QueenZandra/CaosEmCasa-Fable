@@ -77,10 +77,10 @@
   <header>
     <div class="eyebrow">Caos em Casa</div>
     <h1>Preview 3D dos Pets</h1>
-    <p>Versão 2 — malhas contínuas esculpidas, estilo brinquedo fofinho. Arraste para girar, escolha uma pose.</p>
+    <p>Versão 4 — estilo facetado das folhas de design: anatomia definida, pelo em lascas do Sirius, Zoe tabby. Arraste para girar, escolha uma pose.</p>
   </header>
   <div class="grid" id="grid"></div>
-  <footer>Corpos gerados por loft (seções ao longo da espinha) com normais suaves e cores pintadas por vértice — mesma técnica que vai para o jogo.</footer>
+  <footer>Low-poly facetado gerado por código a partir das folhas de design de personagem — a mesma malha vai para o jogo.</footer>
 </div>
 
 <script>
@@ -220,320 +220,337 @@ function put(group, mesh, tag) { computeNormals(mesh); mesh.tag = tag || null; g
 const PETS = {
   sirius: {
     name: 'Sirius', tag: 'Latido Potente — protetor e estabanado',
-    scale: 1.15, defense: 'bark', cute: 'sit_wag', tongue: true, floppyEars: true,
-    body: C(0.18, 0.17, 0.18), belly: C(0.28, 0.26, 0.27), grizzle: C(0.66, 0.64, 0.6),
-    eye: C(0.5, 0.32, 0.17), eyeR: 0.05,
+    scale: 1.12, defense: 'bark', cute: 'sit_wag', tongue: true, flopK: 0.35,
+    body: C(0.16, 0.15, 0.16), grizzle: C(0.63, 0.61, 0.58),
+    eye: C(0.72, 0.42, 0.12), eyeR: 0.045,
+    headOrigin: V(0, 0.86, 0.38),
     build(g) {
-      const B = this.body, BE = this.belly, GR = this.grizzle;
-      // corpo contínuo: quadril -> peito -> pescoço
+      const B = this.body;
+      g.tail.origin = V(0, 0.6, -0.36);
+      // corpo atlético: peito fundo, cintura marcada, pescoço subindo
       const bodyFn = (u, st) => {
         let c = B;
-        const bellyT = smooth(0.05, 0.6, -st) * smooth(0.05, 0.25, u) * (1 - smooth(0.72, 0.95, u));
-        c = mix(c, BE, bellyT * 0.85);
-        const ruffT = smooth(0.62, 0.85, u) * 0.35;      // peitoral levemente mais claro
-        return mix(c, lighten(B, 0.16), ruffT);
+        c = mix(c, lighten(B, 0.08), smooth(0.1, 0.7, -st) * 0.4);
+        return mix(c, lighten(B, 0.12), smooth(0.55, 0.85, u) * 0.4);
       };
       put(g.core, loft([
-        { p: V(0, 0.54, -0.46), rx: 0.05 },
-        { p: V(0, 0.52, -0.34), rx: 0.20, ry: 0.19 },
-        { p: V(0, 0.48, -0.08), rx: 0.235, ry: 0.225 },
-        { p: V(0, 0.50, 0.14), rx: 0.215, ry: 0.21 },
-        { p: V(0, 0.58, 0.30), rx: 0.15, ry: 0.15 },
-        { p: V(0, 0.64, 0.38), rx: 0.05 },
-      ], 16, bodyFn));
-      // cabeça + focinho comprido com queixo grisalho
-      const H = g.head.origin;
+        { p: V(0, 0.62, -0.38), rx: 0.05 },
+        { p: V(0, 0.62, -0.28), rx: 0.16, ry: 0.17 },
+        { p: V(0, 0.60, -0.05), rx: 0.145, ry: 0.155 },
+        { p: V(0, 0.60, 0.15), rx: 0.165, ry: 0.205 },
+        { p: V(0, 0.72, 0.30), rx: 0.125, ry: 0.125 },
+        { p: V(0, 0.80, 0.36), rx: 0.045 },
+      ], 12, bodyFn));
+      // cabeça de pastor: crânio + focinho longo com máscara grisalha
+      const H = this.headOrigin;
       const headFn = (u, st) => {
-        let c = B;
-        const griz = smooth(0.62, 0.8, u) * smooth(-0.1, -0.7, st) * 0.9 + smooth(0.86, 0.98, u) * 0.35;
-        return mix(c, GR, Math.min(1, griz));
+        const griz = smooth(0.58, 0.78, u) * smooth(0.0, -0.6, st) * 0.85 + smooth(0.82, 0.97, u) * 0.5;
+        return mix(B, this.grizzle, Math.min(1, griz));
       };
       put(g.head, loft([
-        { p: add(H, V(0, 0.02, -0.14)), rx: 0.05 },
-        { p: add(H, V(0, 0.02, -0.05)), rx: 0.155, ry: 0.147 },
-        { p: add(H, V(0, 0.01, 0.05)), rx: 0.145, ry: 0.137 },
-        { p: add(H, V(0, -0.035, 0.15)), rx: 0.075, ry: 0.066 },
-        { p: add(H, V(0, -0.05, 0.27)), rx: 0.05, ry: 0.046 },
-        { p: add(H, V(0, -0.05, 0.32)), rx: 0.018 },
-      ], 14, headFn));
-      // orelhas caídas abertas para os lados (grupos próprios: balançam)
+        { p: add(H, V(0, 0.0, -0.14)), rx: 0.05 },
+        { p: add(H, V(0, 0.03, -0.03)), rx: 0.135, ry: 0.125 },
+        { p: add(H, V(0, 0.0, 0.06)), rx: 0.12, ry: 0.11 },
+        { p: add(H, V(0, -0.05, 0.14)), rx: 0.062, ry: 0.055 },
+        { p: add(H, V(0, -0.055, 0.21)), rx: 0.048, ry: 0.042 },
+        { p: add(H, V(0, -0.055, 0.235)), rx: 0.016 },
+      ], 10, headFn));
+      // orelhas semi-eretas com ponta dobrada
       for (const s of [-1, 1]) {
         const ear = s < 0 ? g.earL : g.earR;
-        ear.origin = add(H, V(0.09 * s, 0.16, -0.01));
+        ear.origin = add(H, V(0.07 * s, 0.1, -0.02));
         put(ear, loft([
-          { p: add(H, V(0.09 * s, 0.16, -0.01)), rx: 0.025 },
-          { p: add(H, V(0.18 * s, 0.12, 0.0)), rx: 0.07, ry: 0.024 },
-          { p: add(H, V(0.26 * s, 0.0, 0.01)), rx: 0.07, ry: 0.026 },
-          { p: add(H, V(0.29 * s, -0.1, 0.02)), rx: 0.04, ry: 0.018 },
-          { p: add(H, V(0.3 * s, -0.15, 0.02)), rx: 0.009 },
-        ], 10, u => mix(lighten(B, 0.14), darken(B, 0.05), u)));
+          { p: add(H, V(0.075 * s, 0.1, -0.02)), rx: 0.055, ry: 0.022 },
+          { p: add(H, V(0.105 * s, 0.2, -0.03)), rx: 0.042, ry: 0.017 },
+          { p: add(H, V(0.13 * s, 0.225, -0.02)), rx: 0.028, ry: 0.013 },
+          { p: add(H, V(0.155 * s, 0.19, 0.01)), rx: 0.007 },
+        ], 7, null, darken(B, 0.06)));
       }
-      // pernas compridas com patinha
-      legSet(g, [0.15, 0.20], 0.5, 0.07, darken(B, 0.1), lighten(B, 0.05));
-      // PLUMA: rabo enorme enrolado sobre as costas (bem colado ao corpo)
+      legSet(g, 0.13, 0.22, 0.58, 0.055, B, lighten(B, 0.06), 0.4);
+      // cauda-sabre emplumada (para trás, levemente erguida)
       put(g.tail, loft([
-        { p: V(0, 0.5, -0.4), rx: 0.045 },
-        { p: V(0, 0.66, -0.5), rx: 0.09, ry: 0.085 },
-        { p: V(0, 0.86, -0.47), rx: 0.115, ry: 0.105 },
-        { p: V(0, 0.99, -0.32), rx: 0.09, ry: 0.085 },
-        { p: V(0, 1.03, -0.18), rx: 0.045 },
-        { p: V(0, 1.02, -0.12), rx: 0.008 },
-      ], 12, u => mix(this.body, lighten(this.body, 0.22), u)));
-      face(g, this, V(0.062, 0.045, 0.125), V(0, -0.04, 0.325), 0.032);
-      tongueOf(g, this, add(H, V(0, -0.1, 0.26)), false);
+        { p: V(0, 0.58, -0.42), rx: 0.045 },
+        { p: V(0, 0.5, -0.56), rx: 0.06, ry: 0.055 },
+        { p: V(0, 0.48, -0.7), rx: 0.05, ry: 0.045 },
+        { p: V(0, 0.55, -0.82), rx: 0.028 },
+        { p: V(0, 0.6, -0.86), rx: 0.006 },
+      ], 8, u => mix(this.body, lighten(this.body, 0.15), u * 0.7)));
+      // LASCAS DE PELO (shaggy): colar, peito, culotes, dorso e pluma
+      const fur = lcg(777);
+      const shades = [B, lighten(B, 0.09), lighten(B, 0.16), darken(B, 0.08)];
+      const pick = () => shades[(fur() * shades.length) | 0];
+      // colar do pescoço (anel de lascas apontando para baixo/fora)
+      for (let i = 0; i < 9; i++) {
+        const a = -Math.PI * 0.15 + (i / 8) * Math.PI * 1.3;
+        const bx = Math.cos(a) * 0.15, by = 0.66 - Math.sin(Math.max(0, Math.sin(a))) * 0.02;
+        shard(g.core, V(bx, by, 0.24 - Math.abs(Math.sin(a)) * 0.03),
+          norm(V(Math.cos(a) * 0.4, -0.8, 0.25 + fur() * 0.15)), 0.11 + fur() * 0.03, 0.052, pick());
+      }
+      // franja do peito
+      for (let i = 0; i < 3; i++) {
+        shard(g.core, V(-0.05 + i * 0.05, 0.52, 0.29), norm(V(0, -1, 0.2)), 0.1, 0.045, pick());
+      }
+      // culotes (coxas traseiras)
+      for (const s of [-1, 1]) for (let i = 0; i < 3; i++) {
+        shard(g.core, V(0.13 * s, 0.5 - i * 0.05, -0.24 - i * 0.02),
+          norm(V(0.12 * s, -0.65, -0.7)), 0.1, 0.045, pick());
+      }
+      // pelo escorrendo no dorso
+      for (let i = 0; i < 4; i++) {
+        shard(g.core, V((fur() - 0.5) * 0.14, 0.75 - i * 0.015, 0.05 - i * 0.11),
+          norm(V(0, -0.2, -1)), 0.09, 0.045, pick());
+      }
+      // pluma da cauda
+      for (let i = 0; i < 5; i++) {
+        shard(g.tail, V(0, 0.52 - i * 0.008, -0.5 - i * 0.07),
+          norm(V(0, -0.8, -0.4)), 0.1 - i * 0.008, 0.04, pick());
+      }
+      face(g, this, V(0.058, 0.04, 0.115), V(0, -0.052, 0.235), 0.028, C(0.06, 0.05, 0.05));
+      tongueOf(g, this, add(H, V(0, -0.1, 0.17)), false);
     },
   },
 
   belatriz: {
     name: 'Belatriz', tag: 'Modo Feroz — pequena e valente',
-    scale: 0.8, defense: 'ferocious', cute: 'belly_up', blep: true, floppyEars: true,
-    body: C(0.85, 0.7, 0.48), belly: C(0.94, 0.88, 0.73), cream: C(0.93, 0.87, 0.7),
-    eye: C(0.3, 0.19, 0.11), eyeR: 0.062,
+    scale: 0.78, defense: 'ferocious', cute: 'belly_up', blep: true, flopK: 0.6,
+    body: C(0.88, 0.81, 0.66), cream: C(0.95, 0.91, 0.8),
+    eye: C(0.22, 0.15, 0.1), eyeR: 0.06,
+    headOrigin: V(0, 0.56, 0.26),
     build(g) {
       const B = this.body, CRE = this.cream;
-      const bodyFn = (u, st) => {
-        let c = B;
-        c = mix(c, this.belly, smooth(0.0, 0.55, -st) * 0.9);
-        c = mix(c, CRE, smooth(0.6, 0.9, u) * 0.55);   // peito creme
-        return c;
-      };
-      // corpinho compacto e redondo
+      g.tail.origin = V(0, 0.35, -0.22);
+      // filhote compacto e fofinho
+      const bodyFn = (u, st) => mix(B, CRE, smooth(0.0, 0.6, -st) * 0.7 + smooth(0.6, 0.9, u) * 0.3);
       put(g.core, loft([
-        { p: V(0, 0.34, -0.30), rx: 0.05 },
-        { p: V(0, 0.33, -0.20), rx: 0.185, ry: 0.175 },
-        { p: V(0, 0.31, 0.0), rx: 0.21, ry: 0.20 },
-        { p: V(0, 0.33, 0.14), rx: 0.18, ry: 0.175 },
-        { p: V(0, 0.40, 0.23), rx: 0.125, ry: 0.12 },
-        { p: V(0, 0.45, 0.28), rx: 0.045 },
-      ], 16, bodyFn));
-      // cabeça grande redonda, focinho curtinho com barba creme
-      const H = g.head.origin;
+        { p: V(0, 0.33, -0.24), rx: 0.05 },
+        { p: V(0, 0.33, -0.16), rx: 0.155, ry: 0.15 },
+        { p: V(0, 0.32, 0.0), rx: 0.165, ry: 0.16 },
+        { p: V(0, 0.34, 0.12), rx: 0.15, ry: 0.147 },
+        { p: V(0, 0.42, 0.2), rx: 0.11 },
+        { p: V(0, 0.46, 0.24), rx: 0.04 },
+      ], 12, bodyFn));
+      // CABEÇÃO fofo com focinho curtinho
+      const H = this.headOrigin;
       const headFn = (u, st) => {
-        let c = B;
-        const beard = smooth(0.5, 0.75, u) * (smooth(-0.05, -0.6, st) * 0.9 + 0.25);
-        c = mix(c, CRE, Math.min(1, beard));
-        c = mix(c, lighten(B, 0.12), smooth(0.7, 0.4, u) * smooth(0.4, 0.9, st) * 0.5); // topete claro
-        return c;
+        let c = mix(B, CRE, smooth(0.5, 0.8, u) * 0.7);
+        return mix(c, lighten(B, 0.1), smooth(0.5, 0.2, u) * smooth(0.3, 0.9, st) * 0.5);
       };
       put(g.head, loft([
-        { p: add(H, V(0, 0.01, -0.13)), rx: 0.05 },
-        { p: add(H, V(0, 0.01, -0.04)), rx: 0.17, ry: 0.16 },
-        { p: add(H, V(0, 0.0, 0.06)), rx: 0.16, ry: 0.15 },
-        { p: add(H, V(0, -0.035, 0.13)), rx: 0.105, ry: 0.09 },
-        { p: add(H, V(0, -0.04, 0.18)), rx: 0.06, ry: 0.05 },
-        { p: add(H, V(0, -0.04, 0.2)), rx: 0.015 },
-      ], 14, headFn));
-      // orelhas caídas com franja (grupos próprios: balançam)
+        { p: add(H, V(0, 0.02, -0.11)), rx: 0.05 },
+        { p: add(H, V(0, 0.03, -0.02)), rx: 0.155, ry: 0.145 },
+        { p: add(H, V(0, 0.01, 0.07)), rx: 0.145, ry: 0.135 },
+        { p: add(H, V(0, -0.05, 0.13)), rx: 0.075, ry: 0.058 },
+        { p: add(H, V(0, -0.055, 0.155)), rx: 0.02 },
+      ], 10, headFn));
+      // orelhas semi-eretas com ponta dobrada e rosinha interna
       for (const s of [-1, 1]) {
         const ear = s < 0 ? g.earL : g.earR;
-        ear.origin = add(H, V(0.08 * s, 0.15, -0.01));
+        ear.origin = add(H, V(0.09 * s, 0.11, -0.01));
         put(ear, loft([
-          { p: add(H, V(0.08 * s, 0.15, -0.01)), rx: 0.022 },
-          { p: add(H, V(0.17 * s, 0.1, 0.0)), rx: 0.06, ry: 0.022 },
-          { p: add(H, V(0.23 * s, -0.02, 0.01)), rx: 0.06, ry: 0.024 },
-          { p: add(H, V(0.24 * s, -0.11, 0.02)), rx: 0.03, ry: 0.014 },
-          { p: add(H, V(0.24 * s, -0.14, 0.02)), rx: 0.008 },
-        ], 10, u => mix(darken(this.body, 0.12), this.cream, u * 0.4)));
+          { p: add(H, V(0.09 * s, 0.11, -0.01)), rx: 0.05, ry: 0.02 },
+          { p: add(H, V(0.13 * s, 0.19, -0.02)), rx: 0.04, ry: 0.016 },
+          { p: add(H, V(0.165 * s, 0.17, 0.02)), rx: 0.025, ry: 0.012 },
+          { p: add(H, V(0.175 * s, 0.13, 0.045)), rx: 0.006 },
+        ], 7, u => mix(darken(this.body, 0.1), C(0.9, 0.6, 0.62), smooth(0.3, 0.7, u) * 0.45)));
       }
-      legSet(g, [0.12, 0.14], 0.28, 0.058, darken(B, 0.08), this.cream);
-      // rabinho fofo curvado (mais volumoso)
+      legSet(g, 0.115, 0.15, 0.30, 0.055, B, CRE, 0.5);
+      // rabinho curto curvado para cima
       put(g.tail, loft([
-        { p: V(0, 0.36, -0.26), rx: 0.04 },
-        { p: V(0, 0.48, -0.36), rx: 0.085, ry: 0.08 },
-        { p: V(0, 0.6, -0.33), rx: 0.06, ry: 0.055 },
-        { p: V(0, 0.66, -0.27), rx: 0.01 },
-      ], 10, u => mix(this.body, this.cream, u * 0.7)));
-      face(g, this, V(0.062, 0.035, 0.12), V(0, -0.025, 0.205), 0.03);
-      tongueOf(g, this, add(H, V(0, -0.075, 0.17)), true);
+        { p: V(0, 0.35, -0.26), rx: 0.035 },
+        { p: V(0, 0.45, -0.3), rx: 0.045, ry: 0.04 },
+        { p: V(0, 0.55, -0.26), rx: 0.03 },
+        { p: V(0, 0.6, -0.2), rx: 0.007 },
+      ], 7, u => mix(this.body, this.cream, u * 0.6)));
+      face(g, this, V(0.062, 0.03, 0.115), V(0, -0.04, 0.16), 0.028, C(0.06, 0.05, 0.05));
+      // sobrancelhas expressivas (pontinhos da folha de design)
+      for (const s of [-1, 1]) {
+        put(g.head, ball(0.022, add(H, V(0.062 * s, 0.105, 0.11)), C(0.5, 0.42, 0.3), V(1.3, 0.7, 0.6), 6));
+      }
+      tongueOf(g, this, add(H, V(0, -0.09, 0.13)), true);
     },
   },
 
   zoe: {
     name: 'Zoe', tag: 'Escalada Fantasma — bagunceira invisível',
-    scale: 1.0, defense: 'hide', cute: 'play',
-    body: C(0.17, 0.13, 0.11), orange: C(0.78, 0.45, 0.16), cream: C(0.85, 0.68, 0.42),
-    eye: C(0.93, 0.68, 0.18), eyeR: 0.05,
-    spots: null,
+    scale: 1.0, defense: 'hide', cute: 'play', flopK: 0.35,
+    body: C(0.63, 0.45, 0.3), stripe: C(0.33, 0.23, 0.16), white: C(0.95, 0.93, 0.88),
+    eye: C(0.55, 0.75, 0.35), eyeR: 0.045,
+    headOrigin: V(0, 0.7, 0.29),
     build(g) {
-      const B = this.body;
-      // manchas escaminha semeadas no espaço (u, θ)
-      const rng = lcg(20250705);
-      const spots = [];
-      for (let i = 0; i < 13; i++) {
-        spots.push({ u: rng(), th: rng() * 2 * Math.PI, r: 0.12 + rng() * 0.16, c: i % 2 ? this.cream : this.orange });
-      }
-      const mottleFn = (u, st, ct) => {
+      const B = this.body, ST = this.stripe, W = this.white;
+      g.tail.origin = V(0, 0.46, -0.26);
+      // tabby: listras no dorso + peito/barriga brancos
+      const tabby = (u, st) => {
         let c = B;
-        const th = Math.atan2(st, ct);
-        for (const s of spots) {
-          let dth = Math.abs(th - s.th); dth = Math.min(dth, 2 * Math.PI - dth);
-          const d = Math.hypot((u - s.u) * 1.6, dth / Math.PI);
-          c = mix(c, s.c, smooth(s.r, s.r * 0.45, d) * 0.9);
-        }
-        return c;
+        const band = Math.pow(Math.abs(Math.sin(u * 22)), 6) * smooth(-0.25, 0.25, st);
+        c = mix(c, ST, band * 0.85);
+        c = mix(c, W, smooth(-0.15, -0.65, st) * 0.9);          // barriga branca
+        return mix(c, W, smooth(0.62, 0.88, u) * smooth(0.15, -0.4, st)); // peito branco
       };
-      // corpo BEM redondinho
       put(g.core, loft([
-        { p: V(0, 0.36, -0.36), rx: 0.06 },
-        { p: V(0, 0.34, -0.24), rx: 0.235, ry: 0.215 },
-        { p: V(0, 0.33, 0.0), rx: 0.275, ry: 0.255 },
-        { p: V(0, 0.35, 0.16), rx: 0.215, ry: 0.205 },
-        { p: V(0, 0.42, 0.26), rx: 0.125, ry: 0.12 },
-        { p: V(0, 0.46, 0.31), rx: 0.05 },
-      ], 18, mottleFn));
-      // cabeça de gata com manchas + focinho creme
-      const H = g.head.origin;
+        { p: V(0, 0.46, -0.3), rx: 0.05 },
+        { p: V(0, 0.46, -0.22), rx: 0.14, ry: 0.145 },
+        { p: V(0, 0.45, -0.03), rx: 0.135, ry: 0.15 },
+        { p: V(0, 0.46, 0.12), rx: 0.14, ry: 0.15 },
+        { p: V(0, 0.56, 0.22), rx: 0.09 },
+        { p: V(0, 0.62, 0.27), rx: 0.04 },
+      ], 12, tabby));
+      // cabeça de gata: testa listrada + focinho branco + nariz rosa
+      const H = this.headOrigin;
       const headFn = (u, st, ct) => {
-        let c = mottleFn(u * 0.6 + 0.2, st, ct);
-        return mix(c, this.cream, smooth(0.62, 0.85, u) * 0.85);
+        let c = B;
+        const fore = Math.pow(Math.abs(Math.sin((ct + 1) * 5)), 8) * smooth(0.35, 0.75, st) * smooth(0.55, 0.25, u);
+        c = mix(c, ST, fore * 0.8);
+        return mix(c, W, smooth(0.6, 0.82, u) * smooth(0.1, -0.5, st) * 0.95 + smooth(0.78, 0.95, u) * 0.5);
       };
       put(g.head, loft([
-        { p: add(H, V(0, 0.01, -0.12)), rx: 0.045 },
-        { p: add(H, V(0, 0.01, -0.04)), rx: 0.15, ry: 0.14 },
-        { p: add(H, V(0, 0.0, 0.05)), rx: 0.14, ry: 0.13 },
-        { p: add(H, V(0, -0.025, 0.12)), rx: 0.075, ry: 0.062 },
-        { p: add(H, V(0, -0.025, 0.155)), rx: 0.02 },
-      ], 14, headFn));
-      catEars(g, this.body, 1.0, this.orange);
-      legSet(g, [0.13, 0.16], 0.3, 0.062, darken(B, 0.05), this.orange);
-      // rabo fino com pontinha clara (curva suave desde a base)
+        { p: add(H, V(0, 0.01, -0.1)), rx: 0.04 },
+        { p: add(H, V(0, 0.02, -0.02)), rx: 0.12, ry: 0.105 },
+        { p: add(H, V(0, -0.01, 0.05)), rx: 0.11, ry: 0.1 },
+        { p: add(H, V(0, -0.04, 0.115)), rx: 0.052, ry: 0.042 },
+        { p: add(H, V(0, -0.04, 0.14)), rx: 0.016 },
+      ], 10, headFn));
+      catEars(g, H, B, 1.0, C(0.85, 0.55, 0.5));
+      legSet(g, 0.105, 0.16, 0.40, 0.048, B, W, 0.9);
+      // cauda erguida com aneizinhos
       put(g.tail, loft([
-        { p: V(0, 0.34, -0.28), rx: 0.045 },
-        { p: V(0, 0.44, -0.38), rx: 0.038 },
-        { p: V(0, 0.58, -0.46), rx: 0.033 },
-        { p: V(0, 0.76, -0.49), rx: 0.028 },
-        { p: V(0, 0.9, -0.44), rx: 0.022 },
-        { p: V(0, 0.97, -0.4), rx: 0.006 },
-      ], 9, u => u > 0.82 ? C(0.88, 0.85, 0.78) : mix(this.body, this.orange, (Math.sin(u * 18) > 0.4 ? 0.55 : 0))));
-      face(g, this, V(0.055, 0.03, 0.105), V(0, -0.02, 0.16), 0.026);
+        { p: V(0, 0.46, -0.3), rx: 0.038 },
+        { p: V(0, 0.6, -0.36), rx: 0.032 },
+        { p: V(0, 0.78, -0.34), rx: 0.028 },
+        { p: V(0, 0.92, -0.27), rx: 0.022 },
+        { p: V(0, 0.99, -0.22), rx: 0.006 },
+      ], 7, u => mix(this.body, this.stripe, Math.pow(Math.abs(Math.sin(u * 14)), 6) * 0.85)));
+      face(g, this, V(0.05, 0.025, 0.095), V(0, -0.028, 0.145), 0.02, C(0.85, 0.5, 0.5));
     },
   },
 
   minerva: {
     name: 'Minerva', tag: 'Patada Potente — rápida e implacável',
-    scale: 1.0, defense: 'pounce', cute: 'rub',
-    body: C(0.11, 0.11, 0.13), sheen: C(0.26, 0.26, 0.31),
-    eye: C(0.8, 0.8, 0.32), eyeR: 0.044, whiskers: true, fangs: true,
+    scale: 1.02, defense: 'pounce', cute: 'rub', flopK: 0.35,
+    body: C(0.13, 0.13, 0.15), sheen: C(0.24, 0.24, 0.29),
+    eye: C(0.9, 0.75, 0.25), eyeR: 0.042, whiskers: true,
+    headOrigin: V(0, 0.76, 0.32),
     build(g) {
-      const B = this.body;
-      const bodyFn = (u, st) => mix(B, this.sheen, smooth(0.3, 1, st) * 0.5); // brilho no dorso
-      // corpo esguio de pantera
+      const B = this.body, SH = this.sheen;
+      g.tail.origin = V(0, 0.5, -0.26);
+      const bodyFn = (u, st) => mix(B, SH, smooth(0.2, 1, st) * 0.5);
+      // gata elegante: peito fundo, cintura, pescoço alto
       put(g.core, loft([
-        { p: V(0, 0.44, -0.36), rx: 0.05 },
-        { p: V(0, 0.42, -0.26), rx: 0.165, ry: 0.155 },
-        { p: V(0, 0.41, 0.0), rx: 0.185, ry: 0.175 },
-        { p: V(0, 0.43, 0.15), rx: 0.155, ry: 0.15 },
-        { p: V(0, 0.52, 0.26), rx: 0.105, ry: 0.1 },
-        { p: V(0, 0.57, 0.31), rx: 0.045 },
-      ], 16, bodyFn));
-      const H = g.head.origin;
+        { p: V(0, 0.5, -0.3), rx: 0.045 },
+        { p: V(0, 0.5, -0.22), rx: 0.12, ry: 0.13 },
+        { p: V(0, 0.49, -0.05), rx: 0.105, ry: 0.115 },
+        { p: V(0, 0.5, 0.12), rx: 0.125, ry: 0.145 },
+        { p: V(0, 0.6, 0.24), rx: 0.085 },
+        { p: V(0, 0.66, 0.3), rx: 0.035 },
+      ], 12, bodyFn));
+      const H = this.headOrigin;
       put(g.head, loft([
-        { p: add(H, V(0, 0.01, -0.12)), rx: 0.045 },
-        { p: add(H, V(0, 0.01, -0.04)), rx: 0.14, ry: 0.135 },
-        { p: add(H, V(0, 0.0, 0.05)), rx: 0.13, ry: 0.12 },
-        { p: add(H, V(0, -0.025, 0.12)), rx: 0.07, ry: 0.058 },
-        { p: add(H, V(0, -0.025, 0.15)), rx: 0.018 },
-      ], 14, (u, st) => mix(B, this.sheen, smooth(0.3, 1, st) * 0.4)));
-      catEars(g, this.body, 1.3, darken(this.body, 0.2));
-      legSet(g, [0.12, 0.15], 0.38, 0.05, B, this.sheen);
-      // rabo longo elegante
+        { p: add(H, V(0, 0.01, -0.1)), rx: 0.04 },
+        { p: add(H, V(0, 0.02, -0.02)), rx: 0.115, ry: 0.1 },
+        { p: add(H, V(0, -0.01, 0.05)), rx: 0.105, ry: 0.095 },
+        { p: add(H, V(0, -0.035, 0.115)), rx: 0.05, ry: 0.04 },
+        { p: add(H, V(0, -0.035, 0.14)), rx: 0.015 },
+      ], 10, (u, st) => mix(B, SH, smooth(0.2, 1, st) * 0.4)));
+      catEars(g, H, B, 1.25, darken(B, 0.25));
+      legSet(g, 0.10, 0.16, 0.46, 0.042, B, SH, 0.3);
+      // cauda BEM erguida, elegante
       put(g.tail, loft([
-        { p: V(0, 0.44, -0.34), rx: 0.038 },
-        { p: V(0, 0.66, -0.46), rx: 0.03 },
-        { p: V(0, 0.9, -0.46), rx: 0.025 },
-        { p: V(0, 1.05, -0.36), rx: 0.018 },
-        { p: V(0, 1.1, -0.3), rx: 0.005 },
-      ], 9, null, this.body));
-      face(g, this, V(0.046, 0.032, 0.108), V(0, -0.018, 0.155), 0.026);
-      // bigodes brancos + presinhas
-      for (const s of [-1, 1]) {
-        for (let i = 0; i < 2; i++) {
-          put(g.head, slab(0.16, 0.006, 0.006, add(H, V(0.13 * s, -0.03 - 0.03 * i, 0.11)), V(0, 0.4 * s, 0.1 * s * (i ? -0.5 : 1)), C(0.93, 0.93, 0.9)));
-        }
-        put(g.head, loft([
-          { p: add(H, V(0.028 * s, -0.075, 0.135)), rx: 0.011 },
-          { p: add(H, V(0.028 * s, -0.11, 0.14)), rx: 0.003 },
-        ], 6, null, C(0.95, 0.94, 0.9)));
+        { p: V(0, 0.5, -0.3), rx: 0.032 },
+        { p: V(0, 0.66, -0.34), rx: 0.028 },
+        { p: V(0, 0.86, -0.3), rx: 0.024 },
+        { p: V(0, 1.02, -0.22), rx: 0.018 },
+        { p: V(0, 1.08, -0.18), rx: 0.005 },
+      ], 7, null, B));
+      face(g, this, V(0.046, 0.028, 0.098), V(0, -0.026, 0.142), 0.018, C(0.1, 0.09, 0.09));
+      // bigodes brancos
+      for (const s of [-1, 1]) for (let i = 0; i < 2; i++) {
+        put(g.head, slab(0.15, 0.005, 0.005, add(H, V(0.11 * s, -0.025 - 0.026 * i, 0.1)), V(0, 0.42 * s, 0.1 * s * (i ? -0.5 : 1)), C(0.93, 0.93, 0.9)));
       }
     },
   },
 };
 
-/* pernas: pares dianteiro/traseiro com patinha arredondada */
-function legSet(g, xz, hipY, r, color, pawTone) {
+/* lasca de pelo: pétala achatada e angular (estilo shaggy da referência) */
+function shard(group, base, dir, len, w, color) {
+  put(group, loft([
+    { p: base, rx: w, ry: w * 0.5 },
+    { p: add(base, mul(dir, len * 0.5)), rx: w * 0.85, ry: w * 0.4 },
+    { p: add(base, mul(dir, len)), rx: 0.005 },
+  ], 5, null, color));
+}
+
+/* pernas retas com patinha definida; pawMix controla a "meia" branca */
+function legSet(g, x, z, hipY, r, color, pawTone, pawMix) {
+  const zs = [z, z, -z, -z];
   for (let i = 0; i < 4; i++) {
-    const lx = (i % 2 === 0 ? -1 : 1) * xz[0];
-    const lz = (i < 2 ? 1 : -1) * xz[1];
+    const lx = (i % 2 === 0 ? -1 : 1) * x;
+    const lz = zs[i];
     const leg = g.legs[i];
     leg.origin = V(lx, hipY, lz);
     put(leg, loft([
-      { p: V(lx, hipY + 0.06, lz), rx: r * 1.25 },
-      { p: V(lx, hipY - (hipY - 0.1) * 0.5, lz), rx: r },
-      { p: V(lx, 0.09, lz), rx: r * 0.92 },
-      { p: V(lx, 0.045, lz + 0.025), rx: r * 1.15, ry: r * 0.8 },
-      { p: V(lx, 0.01, lz + 0.03), rx: r * 0.5 },
-    ], 10, u => mix(color, pawTone, smooth(0.75, 0.95, u) * 0.4)));
+      { p: V(lx, hipY + 0.05, lz), rx: r * 1.35 },
+      { p: V(lx, hipY * 0.55, lz), rx: r },
+      { p: V(lx, 0.085, lz), rx: r * 0.88 },
+      { p: V(lx, 0.045, lz + 0.02), rx: r * 1.18, ry: r * 0.82 },
+      { p: V(lx, 0.008, lz + 0.028), rx: r * 0.5 },
+    ], 8, u => mix(color, pawTone, smooth(0.68, 0.88, u) * pawMix)));
   }
 }
 
-/* orelhas de gato: triângulos suaves achatados (grupos próprios) */
-function catEars(g, color, scaleK, innerColor) {
-  const H = g.head.origin;
+/* orelhas de gato: triângulos achatados grandes */
+function catEars(g, H, color, k, innerColor) {
   for (const s of [-1, 1]) {
     const ear = s < 0 ? g.earL : g.earR;
-    ear.origin = add(H, V(0.075 * s, 0.1, -0.01));
+    ear.origin = add(H, V(0.065 * s, 0.07, -0.02));
     put(ear, loft([
-      { p: add(H, V(0.075 * s, 0.1, -0.01)), rx: 0.055 * scaleK, ry: 0.02 },
-      { p: add(H, V(0.1 * s, 0.17 * scaleK, -0.015)), rx: 0.035 * scaleK, ry: 0.015 },
-      { p: add(H, V(0.115 * s, 0.23 * scaleK, -0.02)), rx: 0.006 },
-    ], 8, u => mix(color, innerColor, (1 - u) * 0.25)));
+      { p: add(H, V(0.065 * s, 0.07, -0.02)), rx: 0.052 * k, ry: 0.018 },
+      { p: add(H, V(0.09 * s, 0.07 + 0.11 * k, -0.03)), rx: 0.032 * k, ry: 0.013 },
+      { p: add(H, V(0.108 * s, 0.07 + 0.17 * k, -0.04)), rx: 0.005 },
+    ], 6, u => mix(color, innerColor, (1 - u) * 0.3)));
   }
 }
 
-/* olhos com íris grande (nada de esbugalhado) + nariz */
-function face(g, pet, eyeAt, noseAt, noseR) {
-  const H = g.head.origin;
+/* olhos com íris grande + nariz (cor por pet: preto ou rosa) */
+function face(g, pet, eyeAt, noseAt, noseR, noseColor) {
+  const H = pet.headOrigin;
   for (const s of [-1, 1]) {
     const e = add(H, V(eyeAt.x * s, eyeAt.y, eyeAt.z));
-    const out = norm(V(0.3 * s, 0.12, 0.95));       // direção do olhar (levemente para fora)
+    const out = norm(V(0.28 * s, 0.12, 0.95));
     const at = k2 => add(e, mul(out, pet.eyeR * k2));
-    put(g.head, ball(pet.eyeR, e, C(0.93, 0.91, 0.88), V(1, 1, 0.5), 10));
-    put(g.head, ball(pet.eyeR * 0.88, at(0.22), pet.eye, V(1, 1, 0.5), 10));
-    put(g.head, ball(pet.eyeR * 0.5, at(0.45), C(0.05, 0.05, 0.05), V(1, 1, 0.5), 8));
-    put(g.head, ball(pet.eyeR * 0.16, add(at(0.6), V(pet.eyeR * 0.18 * s, pet.eyeR * 0.22, 0)), [255, 255, 255], V(1, 1, 1), 6));
+    put(g.head, ball(pet.eyeR, e, C(0.93, 0.91, 0.88), V(1, 1, 0.5), 9));
+    put(g.head, ball(pet.eyeR * 0.88, at(0.22), pet.eye, V(1, 1, 0.5), 9));
+    put(g.head, ball(pet.eyeR * 0.5, at(0.45), C(0.05, 0.05, 0.05), V(1, 1, 0.5), 7));
+    put(g.head, ball(pet.eyeR * 0.16, add(at(0.6), V(pet.eyeR * 0.18 * s, pet.eyeR * 0.22, 0)), [255, 255, 255], V(1, 1, 1), 5));
   }
-  put(g.head, ball(noseR, add(H, noseAt), C(0.06, 0.05, 0.05), V(1.3, 0.85, 0.9), 8));
+  put(g.head, ball(noseR, add(H, noseAt), noseColor, V(1.3, 0.8, 0.85), 7));
 }
 
 function tongueOf(g, pet, at, always) {
   const m = loft([
-    { p: at, rx: 0.028, ry: 0.01 },
-    { p: add(at, V(0, -0.035, 0.02)), rx: 0.026, ry: 0.009 },
-    { p: add(at, V(0, -0.055, 0.022)), rx: 0.012, ry: 0.006 },
-  ], 8, null, C(0.93, 0.5, 0.55));
+    { p: at, rx: 0.026, ry: 0.01 },
+    { p: add(at, V(0, -0.032, 0.018)), rx: 0.024, ry: 0.009 },
+    { p: add(at, V(0, -0.05, 0.02)), rx: 0.011, ry: 0.006 },
+  ], 7, null, C(0.93, 0.5, 0.55));
   put(g.head, m, always ? null : 'tongue');
 }
 
 function buildPet(id) {
   const def = PETS[id];
-  const head = Group(def.headOrigin || headOriginFor(id));
+  const head = Group(def.headOrigin);
   const g = {
     core: Group(V(0, 0, 0)),
     head,
     earL: Group(V(0, 0, 0), head),
     earR: Group(V(0, 0, 0), head),
-    tail: Group(V(0, def.scale >= 1 ? 0.5 : 0.36, -0.34)),
+    tail: Group(V(0, 0, 0)),
     legs: [Group(V(0, 0, 0)), Group(V(0, 0, 0)), Group(V(0, 0, 0)), Group(V(0, 0, 0))],
     ballGroup: Group(V(0, 0, 0)),
   };
   def.build(g);
   // bolinha da pose "play"
-  put(g.ballGroup, ball(0.09, V(0, 0.09, 0.55), C(0.9, 0.25, 0.3), V(1, 1, 1), 10));
-  put(g.ballGroup, slab(0.26, 0.024, 0.05, V(0, 0.09, 0.55), null, C(0.95, 0.9, 0.85)));
+  put(g.ballGroup, ball(0.09, V(0, 0.09, 0.55), C(0.9, 0.25, 0.3), V(1, 1, 1), 9));
+  put(g.ballGroup, ball(0.092, V(0, 0.09, 0.55), C(0.95, 0.9, 0.85), V(1, 0.22, 1), 9));
   return { id, def, g, pose: 'idle', alpha: 1 };
-}
-function headOriginFor(id) {
-  return { sirius: V(0, 0.72, 0.42), belatriz: V(0, 0.53, 0.3), zoe: V(0, 0.55, 0.34), minerva: V(0, 0.66, 0.34) }[id];
 }
 
 /* ============ poses ============ */
@@ -607,7 +624,7 @@ function applyPose(pet, t) {
   g.tail.rot = V(0, Math.sin(t * wag) * wagAmp + Math.sin(t * wag * 0.5 - 0.6) * wagAmp * 0.35, 0);
   g.legs.forEach((l, i) => { l.rot = V(legRot[i], 0, 0); l.off = V(0, legLift[i], 0); });
   // orelhas com flop atrasado; caídas (cães) balançam mais que as de gato
-  const eAmp = pet.def.floppyEars ? 1.0 : 0.35;
+  const eAmp = pet.def.flopK || 0.35;
   g.earL.rot = V(earSwing * eAmp, 0, -Math.abs(earSwing) * 0.4 * eAmp);
   g.earR.rot = V(earSwing * eAmp, 0, Math.abs(earSwing) * 0.4 * eAmp);
   pet.showBall = showBall; pet.bounce = bounce; pet.alpha = alpha;
@@ -694,15 +711,13 @@ function makeViewer(canvas, pet) {
         const z = camZ - v.p.z;
         return { x: cw / 2 + (v.p.x * f / z) * S, y: ch * 0.87 - ((v.p.y - camY) * f / z + camY * f / camZ) * S, z };
       });
-      // shading suave: intensidade por vértice (key + fill + ambiente)
-      let it = 0, cr2 = 0, cg = 0, cb = 0;
-      for (const v of tv) {
-        let n = v.n;
-        if (n.z < 0) n = V(-n.x, -n.y, -n.z);
-        it += 0.44 + 0.48 * Math.max(0, dot(n, KEY)) + 0.18 * Math.max(0, dot(n, FILL));
-        cr2 += v.c[0]; cg += v.c[1]; cb += v.c[2];
-      }
-      it /= 3; cr2 /= 3; cg /= 3; cb /= 3;
+      // shading FACETADO: normal da face (estilo low-poly das referências)
+      let fn = norm(cross(sub(tv[1].p, tv[0].p), sub(tv[2].p, tv[0].p)));
+      if (fn.z < 0) fn = V(-fn.x, -fn.y, -fn.z);
+      const it = 0.42 + 0.5 * Math.max(0, dot(fn, KEY)) + 0.18 * Math.max(0, dot(fn, FILL));
+      let cr2 = 0, cg = 0, cb = 0;
+      for (const v of tv) { cr2 += v.c[0]; cg += v.c[1]; cb += v.c[2]; }
+      cr2 /= 3; cg /= 3; cb /= 3;
       drawn.push({ pv, depth: (pv[0].z + pv[1].z + pv[2].z) / 3, col: `rgb(${Math.min(255, cr2 * it) | 0},${Math.min(255, cg * it) | 0},${Math.min(255, cb * it) | 0})` });
     }
     drawn.sort((a, b) => b.depth - a.depth);

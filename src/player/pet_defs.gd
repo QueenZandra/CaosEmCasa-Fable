@@ -11,7 +11,8 @@ const DEFS := {
 		# rabo de pluma enrolado sobre as costas, focinho grisalho, olhos
 		# castanhos e a língua de fora quando está feliz.
 		"kind": "dog",
-		"scale": 1.15,
+		"scale": 1.12,
+		"flop_k": 0.35,
 		"chubby": 0.85,
 		"leggy": 1.18,
 		"snout": 1.25,
@@ -39,11 +40,12 @@ const DEFS := {
 		# bagunçadinho, focinho curto com barbinha creme, orelhas caídas
 		# com franja, olhões escuros de pidona e a linguinha de fora (blep).
 		"kind": "dog",
-		"scale": 0.8,
+		"scale": 0.78,
+		"flop_k": 0.6,
 		"chubby": 1.05,
 		"leggy": 0.85,
 		"snout": 0.7,
-		"body_color": Color(0.85, 0.7, 0.48),
+		"body_color": Color(0.88, 0.81, 0.66),
 		"belly_color": Color(0.93, 0.87, 0.72),
 		"muzzle_color": Color(0.92, 0.86, 0.7),
 		"eye_color": Color(0.32, 0.2, 0.12),
@@ -66,17 +68,17 @@ const DEFS := {
 	},
 	"zoe": {
 		"id": "zoe",
-		# Gata escaminha (casco de tartaruga), gorda. Sobe em tudo, medrosa,
-		# bagunceira. Visual das fotos reais: preta mosqueada de manchas
-		# laranja/creme, olhos âmbar marcantes, rostinho assimétrico,
-		# bem redondinha e com a pontinha do rabo clara.
+		# Gata bagunceira que sobe em tudo e é medrosa. Visual do novo
+		# design (folha de referência): tabby marrom com listras, peito e
+		# patas brancos, olhos verdes e focinho rosa.
 		"kind": "cat",
 		"scale": 1.0,
+		"flop_k": 0.35,
 		"chubby": 1.3,
-		"body_color": Color(0.16, 0.12, 0.1),
-		"belly_color": Color(0.72, 0.5, 0.3),
+		"body_color": Color(0.63, 0.45, 0.3),
+		"belly_color": Color(0.95, 0.93, 0.88),
 		"muzzle_color": Color(0.85, 0.68, 0.45),
-		"eye_color": Color(0.93, 0.68, 0.18),
+		"eye_color": Color(0.55, 0.75, 0.35),
 		"eye_size": 1.15,
 		"mottled": true,
 		"tail_tip_color": Color(0.88, 0.85, 0.78),
@@ -97,7 +99,8 @@ const DEFS := {
 		# esguia, olhões amarelo-esverdeados, orelhonas pontudas, bigodes
 		# brancos destacados e presinhas de deboche à mostra.
 		"kind": "cat",
-		"scale": 1.0,
+		"scale": 1.02,
+		"flop_k": 0.35,
 		"chubby": 0.9,
 		"body_color": Color(0.08, 0.08, 0.09),
 		"belly_color": Color(0.13, 0.13, 0.15),
