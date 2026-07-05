@@ -20,11 +20,16 @@ var _core: Node3D
 var _head: Node3D
 var _tail: Node3D
 var _legs: Array[Node3D] = []
+var _leg_home: Array[Vector3] = []
+var _ear_l: Node3D
+var _ear_r: Node3D
 var _ball: Node3D
 var _tongue: MeshInstance3D = null
 var _blep := false
 var _body_mesh: MeshInstance3D
 var _ghosted := false
+
+const GAIT_PHASE := [0.0, PI, PI, 0.0]  # FL, FR, BL, BR — pares diagonais
 
 
 static func pose_index(p: String) -> int:
@@ -52,6 +57,10 @@ func build(def: Dictionary) -> void:
 	_tail = Node3D.new()
 	_core.add_child(_head)
 	_core.add_child(_tail)
+	_ear_l = Node3D.new()
+	_ear_r = Node3D.new()
+	_head.add_child(_ear_l)
+	_head.add_child(_ear_r)
 	for i in 4:
 		var leg := Node3D.new()
 		_core.add_child(leg)
@@ -108,12 +117,14 @@ func _build_sirius() -> void:
 	for s in [-1.0, 1.0]:
 		var ear_fn := func(u: float, _st: float, _ct: float) -> Color:
 			return B.lightened(0.14).lerp(B.darkened(0.05), u)
-		PetMesh.loft(_head, [
-			{"p": Vector3(0.09 * s, 0.16, -0.01), "rx": 0.025},
-			{"p": Vector3(0.18 * s, 0.12, 0.0), "rx": 0.07, "ry": 0.024},
-			{"p": Vector3(0.26 * s, 0.0, 0.01), "rx": 0.07, "ry": 0.026},
-			{"p": Vector3(0.29 * s, -0.1, 0.02), "rx": 0.04, "ry": 0.018},
-			{"p": Vector3(0.3 * s, -0.15, 0.02), "rx": 0.009},
+		var ear := _ear_l if s < 0 else _ear_r
+		ear.position = Vector3(0.09 * s, 0.16, -0.01)
+		PetMesh.loft(ear, [
+			{"p": Vector3(0, 0, 0), "rx": 0.025},
+			{"p": Vector3(0.09 * s, -0.04, 0.01), "rx": 0.07, "ry": 0.024},
+			{"p": Vector3(0.17 * s, -0.16, 0.02), "rx": 0.07, "ry": 0.026},
+			{"p": Vector3(0.2 * s, -0.26, 0.03), "rx": 0.04, "ry": 0.018},
+			{"p": Vector3(0.21 * s, -0.31, 0.03), "rx": 0.009},
 		], 10, ear_fn)
 	_leg_set([0.15, 0.20], 0.5, 0.07, B.darkened(0.1), B.lightened(0.05))
 	var plume_fn := func(u: float, _st: float, _ct: float) -> Color:
@@ -162,12 +173,14 @@ func _build_belatriz() -> void:
 	for s in [-1.0, 1.0]:
 		var ear_fn := func(u: float, _st: float, _ct: float) -> Color:
 			return B.darkened(0.12).lerp(CRE, u * 0.4)
-		PetMesh.loft(_head, [
-			{"p": Vector3(0.08 * s, 0.15, -0.01), "rx": 0.022},
-			{"p": Vector3(0.17 * s, 0.1, 0.0), "rx": 0.06, "ry": 0.022},
-			{"p": Vector3(0.23 * s, -0.02, 0.01), "rx": 0.06, "ry": 0.024},
-			{"p": Vector3(0.24 * s, -0.11, 0.02), "rx": 0.03, "ry": 0.014},
-			{"p": Vector3(0.24 * s, -0.14, 0.02), "rx": 0.008},
+		var ear := _ear_l if s < 0 else _ear_r
+		ear.position = Vector3(0.08 * s, 0.15, -0.01)
+		PetMesh.loft(ear, [
+			{"p": Vector3(0, 0, 0), "rx": 0.022},
+			{"p": Vector3(0.09 * s, -0.05, 0.01), "rx": 0.06, "ry": 0.022},
+			{"p": Vector3(0.15 * s, -0.17, 0.02), "rx": 0.06, "ry": 0.024},
+			{"p": Vector3(0.16 * s, -0.26, 0.03), "rx": 0.03, "ry": 0.014},
+			{"p": Vector3(0.16 * s, -0.29, 0.03), "rx": 0.008},
 		], 10, ear_fn)
 	_leg_set([0.12, 0.14], 0.28, 0.058, B.darkened(0.08), CRE)
 	var tail_fn := func(u: float, _st: float, _ct: float) -> Color:
@@ -299,6 +312,7 @@ func _leg_set(xz: Array, hip_y: float, r: float, color: Color, paw_tone: Color) 
 		var lz: float = (1.0 if i < 2 else -1.0) * xz[1]
 		var leg := _legs[i]
 		leg.position = Vector3(lx, hip_y, lz)
+		_leg_home.append(leg.position)
 		var leg_fn := func(u: float, _st: float, _ct: float) -> Color:
 			return color.lerp(paw_tone, _smooth(0.75, 0.95, u) * 0.4)
 		PetMesh.loft(leg, [
@@ -314,10 +328,12 @@ func _cat_ears(color: Color, k: float, inner: Color) -> void:
 	for s in [-1.0, 1.0]:
 		var ear_fn := func(u: float, _st: float, _ct: float) -> Color:
 			return color.lerp(inner, (1.0 - u) * 0.25)
-		PetMesh.loft(_head, [
-			{"p": Vector3(0.075 * s, 0.1, -0.01), "rx": 0.055 * k, "ry": 0.02},
-			{"p": Vector3(0.1 * s, 0.17 * k, -0.015), "rx": 0.035 * k, "ry": 0.015},
-			{"p": Vector3(0.115 * s, 0.23 * k, -0.02), "rx": 0.006},
+		var ear := _ear_l if s < 0 else _ear_r
+		ear.position = Vector3(0.075 * s, 0.1, -0.01)
+		PetMesh.loft(ear, [
+			{"p": Vector3(0, 0, 0), "rx": 0.055 * k, "ry": 0.02},
+			{"p": Vector3(0.025 * s, 0.17 * k - 0.1, -0.005), "rx": 0.035 * k, "ry": 0.015},
+			{"p": Vector3(0.04 * s, 0.23 * k - 0.1, -0.01), "rx": 0.006},
 		], 8, ear_fn)
 
 
@@ -355,65 +371,110 @@ func set_pose(p: String) -> void:
 func animate(delta: float) -> void:
 	_t += delta
 	var wag_speed := 3.0
+	var wag_amp := 0.55
 	var core_rot := Vector3.ZERO
 	var core_pos := Vector3.ZERO
+	var core_scale := Vector3.ONE
+	var head_rx := 0.0
+	var head_rz := 0.0
+	var ear_swing := 0.0
+	var leg_rot := [0.0, 0.0, 0.0, 0.0]
+	var leg_lift := [0.0, 0.0, 0.0, 0.0]
 	match pose:
 		"walk":
-			var swing := sin(_t * 10.0) * 0.55 * clampf(move_ratio, 0.2, 1.0)
-			for i in _legs.size():
-				_legs[i].rotation.x = swing * (1.0 if i % 2 == 0 else -1.0)
-			core_pos.y = absf(sin(_t * 10.0)) * 0.04
-			wag_speed = 6.0
+			# Marcha quadrúpede: pares diagonais + squash & stretch.
+			var ph := _t * 9.0
+			var ratio := clampf(move_ratio, 0.25, 1.0)
+			for i in 4:
+				leg_rot[i] = sin(ph + GAIT_PHASE[i]) * 0.55 * ratio
+				leg_lift[i] = maxf(0.0, sin(ph + GAIT_PHASE[i] + PI / 2.0)) * 0.05 * ratio
+			core_pos.y = absf(sin(ph)) * 0.03 * ratio
+			core_rot.z = sin(ph) * 0.03 * ratio
+			var sq := 1.0 + sin(ph * 2.0 + PI / 2.0) * 0.03 * ratio
+			core_scale = Vector3(1.0 / sqrt(sq), sq, 1.0 / sqrt(sq))
+			head_rx = sin(ph * 2.0) * 0.05
+			ear_swing = sin(ph * 2.0 - 0.9) * 0.2
+			wag_speed = 7.0
 		"idle":
-			for leg in _legs:
-				leg.rotation.x = lerpf(leg.rotation.x, 0.0, 10.0 * delta)
-			core_pos.y = sin(_t * 2.0) * 0.013
+			var breathe := 1.0 + sin(_t * 2.0) * 0.012
+			core_scale = Vector3(1.0, breathe, 1.0)
+			core_pos.y = sin(_t * 2.0) * 0.006
+			head_rz = sin(_t * 0.6) * 0.05
+			ear_swing = sin(_t * 1.3) * 0.05
+			wag_speed = 2.2
+			wag_amp = 0.3
 		"bark":
 			core_rot.x = -0.22
-			_head.rotation.x = sin(_t * 20.0) * 0.18
+			head_rx = sin(_t * 20.0) * 0.18
+			ear_swing = sin(_t * 20.0 - 1.0) * 0.3
+			core_scale = Vector3(1.02, 0.97, 1.02)
 			wag_speed = 10.0
 		"ferocious":
 			core_rot.x = 0.18
 			core_pos.y = absf(sin(_t * 14.0)) * 0.05
+			core_scale = Vector3(1.04, 1.0 + sin(_t * 14.0) * 0.03, 1.04)
+			ear_swing = -0.25
 			wag_speed = 14.0
 		"pounce":
 			core_rot.x = 0.32
+			core_scale = Vector3(0.94, 0.94, 1.14)
+			ear_swing = -0.3
 			wag_speed = 8.0
 		"hide":
 			core_pos.y = -0.1
 			core_rot.x = 0.08
+			core_scale = Vector3(1.05, 0.84, 1.05)
+			ear_swing = -0.25
 		"sit_wag":
 			core_rot.x = -0.45
 			core_pos.y = -0.04
+			ear_swing = sin(_t * 16.0) * 0.07
+			head_rz = sin(_t * 3.0) * 0.06
 			wag_speed = 16.0
 		"belly_up":
 			# Gira em torno da origem no chão; o offset alto recoloca o
 			# corpo em cima do piso (corrige o antigo afundamento).
 			core_rot.z = PI
 			core_pos.y = 0.86
-			for i in _legs.size():
-				_legs[i].rotation.x = sin(_t * 6.0 + i) * 0.3
+			ear_swing = 0.18
+			for i in 4:
+				leg_rot[i] = sin(_t * 6.0 + i) * 0.3
 		"play":
 			core_rot.x = 0.26
 			core_pos.y = absf(sin(_t * 8.0)) * 0.07
+			core_scale = Vector3(1.0, 1.0 + sin(_t * 8.0) * 0.05, 1.0)
+			ear_swing = sin(_t * 8.0) * 0.15
 			_ball.position.y = absf(sin(_t * 8.0 + 1.0)) * 0.24
 			wag_speed = 12.0
 		"rub":
 			core_rot.z = sin(_t * 5.0) * 0.32
+			ear_swing = sin(_t * 5.0) * 0.12
 			wag_speed = 10.0
 		"sad":
 			core_rot.x = 0.15
 			core_pos.y = -0.05
-			_head.rotation.x = 0.3
+			head_rx = 0.3
+			ear_swing = -0.3
 			wag_speed = 0.5
 		"eat":
 			core_rot.x = 0.3
-			_head.rotation.x = 0.4 + sin(_t * 12.0) * 0.1
-	if pose != "bark" and pose != "sad" and pose != "eat":
-		_head.rotation.x = lerp_angle(_head.rotation.x, 0.0, 10.0 * delta)
+			head_rx = 0.4 + sin(_t * 12.0) * 0.1
 	_core.rotation = _core.rotation.lerp(core_rot, 12.0 * delta)
 	_core.position = _core.position.lerp(core_pos, 12.0 * delta)
-	_tail.rotation.y = sin(_t * wag_speed) * 0.55
+	_core.scale = _core.scale.lerp(core_scale, 12.0 * delta)
+	_head.rotation.x = lerp_angle(_head.rotation.x, head_rx, 10.0 * delta)
+	_head.rotation.z = lerp_angle(_head.rotation.z, head_rz, 10.0 * delta)
+	# Rabo com follow-through: onda principal + camada atrasada.
+	_tail.rotation.y = sin(_t * wag_speed) * wag_amp + sin(_t * wag_speed * 0.5 - 0.6) * wag_amp * 0.35
+	# Orelhas com flop atrasado; caídas (cães) balançam mais que as de gato.
+	var ear_amp := 1.0 if String(_def.get("ear", "")).begins_with("dog") else 0.35
+	_ear_l.rotation = Vector3(ear_swing * ear_amp, 0, -absf(ear_swing) * 0.4 * ear_amp)
+	_ear_r.rotation = Vector3(ear_swing * ear_amp, 0, absf(ear_swing) * 0.4 * ear_amp)
+	for i in 4:
+		if i < _legs.size():
+			_legs[i].rotation.x = lerpf(_legs[i].rotation.x, leg_rot[i], 14.0 * delta)
+			if i < _leg_home.size():
+				_legs[i].position = _leg_home[i] + Vector3(0, leg_lift[i], 0)
 	if _tongue != null:
 		_tongue.visible = _blep or (bool(_def.get("tongue", false)) and pose in ["walk", "sit_wag", "play"])
 
