@@ -5,6 +5,7 @@ const ORDER := ["sirius", "belatriz", "zoe", "minerva"]
 
 const DEFS := {
 	"sirius": {
+		"id": "sirius",
 		# Cão porte médio, peludo, preto. Protetor, latido potente, estabanado.
 		# Visual baseado nas fotos reais: esguio, pernas longas, juba fofa,
 		# rabo de pluma enrolado sobre as costas, focinho grisalho, olhos
@@ -32,6 +33,7 @@ const DEFS := {
 		"ability_cooldown": 4.0,
 	},
 	"belatriz": {
+		"id": "belatriz",
 		# Cadela pequena, dourada, olhos pidões. Feroz contra invasores.
 		# Visual baseado nas fotos reais: pelo creme/damasco ondulado e
 		# bagunçadinho, focinho curto com barbinha creme, orelhas caídas
@@ -63,6 +65,7 @@ const DEFS := {
 		"ability_cooldown": 9.0,
 	},
 	"zoe": {
+		"id": "zoe",
 		# Gata escaminha (casco de tartaruga), gorda. Sobe em tudo, medrosa,
 		# bagunceira. Visual das fotos reais: preta mosqueada de manchas
 		# laranja/creme, olhos âmbar marcantes, rostinho assimétrico,
@@ -88,6 +91,7 @@ const DEFS := {
 		"ability_cooldown": 6.0,
 	},
 	"minerva": {
+		"id": "minerva",
 		# Gata preta, cara de mal mas carinhosa. Rápida, patada potente.
 		# Visual das fotos reais: pantera em miniatura — preta lustrosa,
 		# esguia, olhões amarelo-esverdeados, orelhonas pontudas, bigodes
